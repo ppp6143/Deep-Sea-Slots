@@ -6,6 +6,7 @@ import { GameCanvas } from './components/GameCanvas';
 import { InfoBar } from './components/InfoBar';
 import { Overlays } from './components/Overlays';
 import { PaySymbol } from './components/PaySymbol';
+import { ReelFrame } from './components/ReelFrame';
 import { useAudio } from './hooks/useAudio';
 import { useGameState } from './hooks/useGameState';
 import { useKeyboard } from './hooks/useKeyboard';
@@ -58,6 +59,7 @@ export default function App() {
   const [symbols, setSymbols] = useState<CanvasImageSource[]>([]);
   const [ptOpen, setPtOpen] = useState(false);
   const [bonusMsg, setBonusMsg] = useState('');
+  const [pressedReel, setPressedReel] = useState<number | null>(null);
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -170,6 +172,8 @@ export default function App() {
     const snap = createSnap(mainPosRef.current[r], target, L);
     snap.reel = r;
     mainSnapRef.current = snap;
+    setPressedReel(r);
+    window.setTimeout(() => setPressedReel((v) => (v === r ? null : v)), 170);
     audio.coin();
   }, [audio, dispatch]);
 
@@ -263,6 +267,17 @@ export default function App() {
     else handleSpin();
   });
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.repeat) return;
+      if (e.key.toLowerCase() !== 'b') return;
+      e.preventDefault();
+      if (!stateRef.current.bonusActive) startBonus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [startBonus]);
+
   const onFrame = useCallback((dt: number) => {
     const scale = dt / 16.666;
 
@@ -349,23 +364,28 @@ export default function App() {
         <div className={styles.title}>⚓ DEEP SEA SLOTS ⚓</div>
         <div className={styles.machine}>
           <InfoBar coins={state.coins} win={state.win} combo={state.combo} free={state.freeSpin} />
-          <div className={styles.reelsOuter}>
-            <GameCanvas
-              runtime={{
-                mainPos: mainPosRef,
-                bonusPos: bonusPosRef,
-                strips: stripsRef,
-                bonusStrips: bonusStripsRef,
-                particles: particlesRef,
-              }}
-              symbols={symbols}
-              bonusActive={state.bonusActive}
-              reachOn={state.reachOn}
-              isSpinning={state.isSpinning}
-              combo={state.combo}
-              onFrame={onFrame}
-            />
-          </div>
+          {!state.bonusActive && (
+            <div className={styles.reelsOuter}>
+              <div className={styles.reelStage}>
+                <GameCanvas
+                  runtime={{
+                    mainPos: mainPosRef,
+                    bonusPos: bonusPosRef,
+                    strips: stripsRef,
+                    bonusStrips: bonusStripsRef,
+                    particles: particlesRef,
+                  }}
+                  symbols={symbols}
+                  bonusActive={state.bonusActive}
+                  reachOn={state.reachOn}
+                  isSpinning={state.isSpinning}
+                  combo={state.combo}
+                  onFrame={onFrame}
+                />
+                <ReelFrame bet={state.bet} stopState={state.stopState} pressedReel={pressedReel} />
+              </div>
+            </div>
+          )}
           <Controls
             bet={state.bet}
             linesCount={state.linesCount}
@@ -401,9 +421,30 @@ export default function App() {
           winMsg={bonusMsg}
           onAction={handleBonusAction}
           onEnd={endBonus}
+          reels={
+            <div className={styles.bonusReelsOuter}>
+              <GameCanvas
+                runtime={{
+                  mainPos: mainPosRef,
+                  bonusPos: bonusPosRef,
+                  strips: stripsRef,
+                  bonusStrips: bonusStripsRef,
+                  particles: particlesRef,
+                }}
+                symbols={symbols}
+                bonusActive={state.bonusActive}
+                reachOn={state.reachOn}
+                isSpinning
+                combo={state.combo}
+                onFrame={onFrame}
+                className={styles.bonusCanvas}
+              />
+            </div>
+          }
         />
       </div>
     </div>
   );
 }
+
 

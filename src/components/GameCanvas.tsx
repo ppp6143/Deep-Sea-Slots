@@ -18,6 +18,7 @@ interface Props {
   isSpinning: boolean;
   combo: number;
   onFrame: (dt: number) => void;
+  className?: string;
 }
 
 interface Bubble {
@@ -29,9 +30,11 @@ interface Bubble {
   a: number;
 }
 
-export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning, combo, onFrame }: Props) {
+export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning, combo, onFrame, className }: Props) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const timeRef = useRef(0);
+  const GLASS_ALPHA = 0.16;
+  const GLASS_DOT_ALPHA = 0.1;
   const bubbles = useMemo<Bubble[]>(() => Array.from({ length: 24 }, () => ({
     x: Math.random() * 520,
     y: 360 + Math.random() * 300,
@@ -136,24 +139,11 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
           const img = symbols[sym];
           const dy = y + (i - frac) * cellH;
           if (img) {
-            if (sym === 0 || sym === 9) {
-              ctx.shadowColor = sym === 0 ? '#ffd700' : '#ff3366';
-              ctx.shadowBlur = 9;
-            } else if (sym === 1 || sym === 8) {
-              ctx.shadowColor = '#00e5ff';
-              ctx.shadowBlur = 5;
-            } else {
-              ctx.shadowBlur = 0;
-            }
             ctx.drawImage(img, x + (reelW - 64) / 2, dy + 8, 64, 64);
-            ctx.shadowBlur = 0;
           }
         }
         ctx.restore();
 
-        ctx.strokeStyle = 'rgba(0,229,255,0.35)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 0.5, y + 0.5, reelW - 1, 239);
       }
 
       const sep1 = reelW;
@@ -161,8 +151,43 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       ctx.fillStyle = 'rgba(0,229,255,0.38)';
       ctx.fillRect(sep1, reelAreaY, reelGap, reelAreaH);
       ctx.fillRect(sep2, reelAreaY, reelGap, reelAreaH);
-      ctx.strokeStyle = 'rgba(0,229,255,0.55)';
-      ctx.strokeRect(0.5, 0.5, reelAreaW - 1, reelAreaH - 1);
+
+      // CRT-like glass overlay: subtle tint + pixel grain + reflection.
+      ctx.save();
+      ctx.fillStyle = `rgba(185,220,255,${GLASS_ALPHA})`;
+      ctx.fillRect(reelAreaX, reelAreaY, reelAreaW, reelAreaH);
+
+      // Coarser dot grain for a chunkier pixel-glass look.
+      ctx.fillStyle = `rgba(230,245,255,${GLASS_DOT_ALPHA})`;
+      for (let gy = reelAreaY + 1; gy < reelAreaY + reelAreaH; gy += 5) {
+        for (let gx = reelAreaX + ((gy / 5) % 2) * 2; gx < reelAreaX + reelAreaW; gx += 5) {
+          ctx.fillRect(gx, gy, 1, 1);
+        }
+      }
+
+      const glare = ctx.createLinearGradient(reelAreaX, reelAreaY, reelAreaX + reelAreaW, reelAreaY + reelAreaH);
+      glare.addColorStop(0, 'rgba(255,255,255,0.22)');
+      glare.addColorStop(0.12, 'rgba(255,255,255,0.06)');
+      glare.addColorStop(0.4, 'rgba(255,255,255,0)');
+      glare.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glare;
+      ctx.fillRect(reelAreaX, reelAreaY, reelAreaW, reelAreaH);
+
+      const topShade = ctx.createLinearGradient(reelAreaX, reelAreaY, reelAreaX, reelAreaY + 24);
+      topShade.addColorStop(0, 'rgba(255,255,255,0.24)');
+      topShade.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = topShade;
+      ctx.fillRect(reelAreaX, reelAreaY, reelAreaW, 24);
+
+      const bottomShade = ctx.createLinearGradient(reelAreaX, reelAreaY + reelAreaH - 28, reelAreaX, reelAreaY + reelAreaH);
+      bottomShade.addColorStop(0, 'rgba(0,0,0,0)');
+      bottomShade.addColorStop(1, 'rgba(0,0,0,0.26)');
+      ctx.fillStyle = bottomShade;
+      ctx.fillRect(reelAreaX, reelAreaY + reelAreaH - 28, reelAreaW, 28);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.17)';
+      ctx.strokeRect(reelAreaX + 1.5, reelAreaY + 1.5, reelAreaW - 3, reelAreaH - 3);
+      ctx.restore();
 
       ctx.fillStyle = `rgba(255,255,255,${isSpinning ? 0.08 : 0.04})`;
       ctx.fillRect(0, reelAreaH * 0.5 - 1, reelAreaW, 2);
@@ -216,6 +241,6 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
     };
   }, [bubbles, bonusActive, combo, isSpinning, onFrame, runtime, symbols, reachOn]);
 
-  return <canvas ref={ref} className={styles.gameCanvas} />;
+  return <canvas ref={ref} className={className ?? styles.gameCanvas} />;
 }
 

@@ -23,34 +23,38 @@
       F(11, 0, 1, 2, '#88DDFF'); F(9, 1, 1, 1, '#CCFFFF');
       F(11, 1, 1, 1, '#CCFFFF');
       F(4, 5, 6, 1, '#5AAAD4'); F(6, 4, 4, 1, '#4A9AC4');
-      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5;
       ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
-      ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+      ctx.strokeRect(0.75, 0.75, 62.5, 62.5); ctx.shadowBlur = 0;
     },
     () => {
-      F(1, 6, 13, 5, '#4A9EBF'); F(2, 5, 11, 1, '#4A9EBF');
-      F(3, 9, 9, 2, '#E8F4F8');
-      F(0, 7, 3, 4, '#3A8EAF'); F(0, 6, 2, 1, '#3A8EAF'); F(0, 11, 2, 1, '#3A8EAF');
-      F(7, 2, 3, 4, '#3A8EAF');
-      F(3, 10, 3, 2, '#E8F4F8');
-      F(13, 7, 1, 2, '#C82200'); F(13, 8, 1, 2, '#fff');
-      F(11, 5, 2, 2, '#000'); F(12, 5, 1, 1, '#fff');
-      F(4, 4, 3, 1, '#7ABEDD');
+      // Shifted one pixel to the right and reshaped fork-tail.
+      F(2, 6, 12, 5, '#4A9EBF'); F(3, 5, 10, 1, '#4A9EBF');
+      F(4, 9, 8, 2, '#E8F4F8');
+      // Tail flukes (upper/lower lobes + center notch) to keep shark silhouette.
+      F(1, 6, 2, 1, '#3A8EAF'); F(0, 7, 3, 2, '#3A8EAF');
+      F(1, 9, 2, 1, '#2E7E9C');
+      F(0, 10, 3, 2, '#3A8EAF'); F(1, 12, 2, 1, '#3A8EAF');
+      F(8, 2, 3, 4, '#3A8EAF');
+      F(4, 10, 3, 2, '#E8F4F8');
+      F(14, 7, 1, 2, '#C82200'); F(14, 8, 1, 2, '#fff');
+      F(12, 5, 2, 2, '#000'); F(13, 5, 1, 1, '#fff');
+      F(5, 4, 3, 1, '#7ABEDD');
       ctx.strokeStyle = '#00E5FF'; ctx.lineWidth = 1;
       ctx.shadowColor = '#00E5FF'; ctx.shadowBlur = 7;
-      ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+      ctx.strokeRect(0.5, 0.5, 63, 63); ctx.shadowBlur = 0;
     },
     () => {
-      F(3, 0, 10, 7, '#9B3DAB'); F(2, 2, 12, 6, '#9B3DAB');
-      F(5, 1, 2, 2, '#FFD700'); F(9, 1, 2, 2, '#FFD700');
-      F(6, 2, 1, 1, '#000'); F(10, 2, 1, 1, '#000');
-      [[1, 7], [3, 7], [5, 7], [7, 7], [9, 7], [11, 7]].forEach(([x, y]) => {
+      F(3, 1, 10, 7, '#9B3DAB'); F(2, 3, 12, 6, '#9B3DAB');
+      F(5, 2, 2, 2, '#FFD700'); F(9, 2, 2, 2, '#FFD700');
+      F(6, 3, 1, 1, '#000'); F(10, 3, 1, 1, '#000');
+      [[1, 8], [3, 8], [5, 8], [7, 8], [9, 8], [11, 8]].forEach(([x, y]) => {
         F(x, y, 2, 7, '#7B2D8B');
         F(x, y + 2, 1, 1, '#DD88FF'); F(x + 1, y + 5, 1, 1, '#DD88FF');
       });
       ctx.strokeStyle = '#CC44FF'; ctx.lineWidth = 1;
       ctx.shadowColor = '#CC44FF'; ctx.shadowBlur = 6;
-      ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+      ctx.strokeRect(0.5, 0.5, 63, 63); ctx.shadowBlur = 0;
     },
     () => {
       F(4, 3, 8, 9, '#2D6A2D'); F(3, 5, 10, 7, '#2D6A2D');
@@ -91,9 +95,6 @@
       F(4, 7, 1, 5, '#228B22'); F(11, 6, 1, 4, '#228B22');
       F(4, 11, 8, 1, '#228B22');
       F(3, 2, 1, 1, '#FF8888'); F(10, 1, 1, 1, '#FF8888');
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 8px monospace';
-      ctx.fillText('SC', 22, 58);
     },
     () => {
       F(7, 0, 4, 3, '#2E8B57'); F(8, 3, 3, 2, '#2E8B57');
@@ -109,8 +110,6 @@
       F(1, 4, 14, 8, '#1A2A6C'); F(2, 3, 12, 10, '#1A2A6C');
       F(3, 8, 9, 4, '#2A3A7C');
       F(7, 0, 2, 4, '#fff'); F(6, 0, 4, 2, '#FFFF00');
-      ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 12;
-      F(6, 0, 4, 2, '#FFFF00'); ctx.shadowBlur = 0;
       F(10, 4, 3, 3, '#FFFF00'); F(11, 4, 2, 3, '#000'); F(12, 4, 1, 1, '#fff');
       F(1, 9, 4, 3, '#000'); F(1, 9, 1, 3, '#FF3333');
       F(2, 9, 1, 1, '#fff'); F(2, 12, 1, 1, '#fff'); F(4, 10, 1, 1, '#fff');
