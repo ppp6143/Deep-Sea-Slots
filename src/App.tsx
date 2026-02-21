@@ -321,11 +321,32 @@ export default function App() {
   });
 
   useEffect(() => {
+    const secret = 'pikurusu';
+    let index = 0;
+    let lastAt = 0;
+    const maxGapMs = 1200;
     const onKey = (e: KeyboardEvent): void => {
       if (e.repeat) return;
-      if (e.key.toLowerCase() !== 'b') return;
-      e.preventDefault();
-      if (!stateRef.current.bonusActive) startBonus();
+      const now = Date.now();
+      const key = e.key.toLowerCase();
+      if (key.length !== 1 || key < 'a' || key > 'z') {
+        return;
+      }
+      if (now - lastAt > maxGapMs) index = 0;
+      lastAt = now;
+
+      if (key === secret[index]) {
+        index += 1;
+        if (index >= secret.length) {
+          index = 0;
+          if (!stateRef.current.bonusActive) {
+            startBonus();
+          }
+        }
+        return;
+      }
+
+      index = key === secret[0] ? 1 : 0;
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
