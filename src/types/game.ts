@@ -65,6 +65,8 @@ export interface GameState {
 }
 
 export type GameAction =
+  | { type: 'HYDRATE_PROFILE'; coins: number; bonusEntries: number }
+  | { type: 'RESTART_GAME' }
   | { type: 'SET_BET'; bet: 1 | 2 | 3 }
   | { type: 'SET_MESSAGE'; message: string }
   | { type: 'SET_CHAR'; mood: Mood; text: string }

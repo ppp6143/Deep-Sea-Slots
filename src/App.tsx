@@ -59,6 +59,7 @@ export default function App() {
   const [ptOpen, setPtOpen] = useState(false);
   const [bonusMsg, setBonusMsg] = useState('');
   const [pressedReel, setPressedReel] = useState<number | null>(null);
+  const [profileReady, setProfileReady] = useState(false);
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -78,6 +79,46 @@ export default function App() {
   useEffect(() => {
     void initSymbolCache(true).then((cache) => setSymbols(cache));
   }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    const loadProfile = async (): Promise<void> => {
+      try {
+        const res = await fetch('/api/player', { method: 'GET' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { coins?: number; bonusEntries?: number };
+        if (disposed) return;
+        const coins = Number.isFinite(data.coins) ? Math.max(0, data.coins as number) : 1000;
+        const bonusEntries = Number.isFinite(data.bonusEntries) ? Math.max(0, data.bonusEntries as number) : 0;
+        dispatch({ type: 'HYDRATE_PROFILE', coins, bonusEntries });
+      } catch {
+        // keep local defaults if server read fails
+      } finally {
+        if (!disposed) setProfileReady(true);
+      }
+    };
+    void loadProfile();
+    return () => {
+      disposed = true;
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!profileReady) return;
+    const timer = window.setTimeout(() => {
+      void fetch('/api/player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coins: state.coins,
+          bonusEntries: state.freeSpin,
+        }),
+      }).catch(() => {
+        // non-fatal
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [profileReady, state.coins, state.freeSpin]);
 
   const setChar = useCallback((text: string, mood: 'idle' | 'happy' | 'excited' | 'worried' | 'sad' = 'happy') => {
     dispatch({ type: 'SET_CHAR', mood, text });
@@ -252,6 +293,15 @@ export default function App() {
     spawnParticles(s.bonusWon);
   }, [dispatch, setChar, spawnParticles]);
 
+  const restartFromZero = useCallback(() => {
+    runningRef.current = [false, false, false];
+    bonusRunningRef.current = [false, false, false];
+    mainSnapRef.current = null;
+    bonusSnapRef.current = null;
+    particlesRef.current = [];
+    dispatch({ type: 'RESTART_GAME' });
+  }, [dispatch]);
+
   const handleBonusAction = useCallback(() => {
     if (stateRef.current.bonusSnapping) return;
     if (stateRef.current.bonusStopState === 0) {
@@ -361,6 +411,8 @@ export default function App() {
     return <div className={styles.app}><div className={styles.wrap}><div className={styles.title}>Loading...</div></div></div>;
   }
 
+  const showRestart = !state.bonusActive && !state.isSpinning && state.stopState === 0 && state.coins <= 0;
+
   return (
     <div className={styles.app}>
       <div className={styles.wrap}>
@@ -403,9 +455,11 @@ export default function App() {
             linesCount={state.linesCount}
             stopState={state.bonusActive ? state.bonusStopState : state.stopState}
             bonusActive={state.bonusActive}
+            showRestart={showRestart}
             onBet={(bet) => dispatch({ type: 'SET_BET', bet })}
             onSpin={state.bonusActive ? handleBonusAction : handleSpin}
             onMax={state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
+            onRestart={restartFromZero}
           />
           <div className={styles.msg}>{state.bonusActive ? (bonusMsg || state.message) : state.message}</div>
         </div>

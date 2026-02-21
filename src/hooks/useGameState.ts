@@ -24,8 +24,38 @@ const initialState: GameState = {
   linesCount: 1,
 };
 
+const INITIAL_COINS = 1000;
+
 function reducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'HYDRATE_PROFILE':
+      return {
+        ...state,
+        coins: action.coins,
+        freeSpin: action.bonusEntries,
+      };
+    case 'RESTART_GAME':
+      return {
+        ...state,
+        coins: INITIAL_COINS,
+        win: 0,
+        combo: 0,
+        freeSpin: 0,
+        isSpinning: false,
+        stopState: 0,
+        isSnapping: false,
+        bonusActive: false,
+        bonusFree: 0,
+        bonusWon: 0,
+        bonusPointMult: 2,
+        bonusStopState: 0,
+        bonusSnapping: false,
+        reachOn: false,
+        jackpotOn: false,
+        message: 'コインを賭けてSPINを押そう！',
+        charMood: 'happy',
+        charText: 'ガンバレ！',
+      };
     case 'SET_BET':
       return { ...state, bet: action.bet, linesCount: action.bet === 1 ? 1 : action.bet === 2 ? 3 : 5 };
     case 'SET_MESSAGE':

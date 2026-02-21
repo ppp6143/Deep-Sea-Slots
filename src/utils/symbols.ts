@@ -3,8 +3,8 @@
 export const SYMS: SymbolDef[] = [
   { name: 'シロナガスクジラ', pay2: 50, pay3: 500, weight: 3 },
   { name: 'ホオジロザメ', pay2: 30, pay3: 200, weight: 8 },
-  { name: 'タコ', pay2: 8, pay3: 40, weight: 14 },
-  { name: 'ウミガメ', pay2: 8, pay3: 35, weight: 14 },
+  { name: 'タコ', pay2: 4, pay3: 40, weight: 14 },
+  { name: 'ウミガメ', pay2: 4, pay3: 35, weight: 14 },
   { name: 'クマノミ', pay2: 0, pay3: 15, weight: 24 },
   { name: 'コンク貝', pay2: 0, pay3: 10, weight: 28 },
   { name: 'コーラル', pay2: 0, pay3: 6, weight: 36 },

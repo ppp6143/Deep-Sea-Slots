@@ -35,14 +35,14 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
   const timeRef = useRef(0);
   const GLASS_ALPHA = 0.16;
   const GLASS_DOT_ALPHA = 0.1;
-  const bubbles = useMemo<Bubble[]>(() => Array.from({ length: 24 }, () => ({
+  const bubbles = useMemo<Bubble[]>(() => Array.from({ length: bonusActive ? 14 : 24 }, () => ({
     x: Math.random() * 520,
     y: 360 + Math.random() * 300,
     r: 2 + Math.random() * 6,
     s: 0.25 + Math.random() * 0.7,
     dx: (Math.random() - 0.5) * 0.25,
     a: 0.1 + Math.random() * 0.2,
-  })), []);
+  })), [bonusActive]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -80,11 +80,12 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       ctx.fillRect(0, 0, w, h);
 
       const t = timeRef.current;
-      const caustic = 0.06 + Math.sin(t * 1.7) * 0.02;
+      const caustic = (bonusActive ? 0.03 : 0.06) + Math.sin(t * 1.7) * (bonusActive ? 0.01 : 0.02);
       ctx.fillStyle = `rgba(0,190,255,${caustic})`;
-      for (let i = 0; i < 3; i += 1) {
-        const cx = ((t * 40 + i * 120) % (w + 80)) - 40;
-        ctx.fillRect(cx, 0, 26, h);
+      const causticCount = bonusActive ? 2 : 3;
+      for (let i = 0; i < causticCount; i += 1) {
+        const cx = ((t * (bonusActive ? 24 : 40) + i * 120) % (w + 80)) - 40;
+        ctx.fillRect(cx, 0, bonusActive ? 20 : 26, h);
       }
 
       ctx.strokeStyle = 'rgba(0,200,255,0.2)';
@@ -103,7 +104,8 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       ctx.stroke();
 
       ctx.fillStyle = 'rgba(0,0,0,0.12)';
-      for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1);
+      const scanStep = bonusActive ? 5 : 3;
+      for (let y = 0; y < h; y += scanStep) ctx.fillRect(0, y, w, 1);
 
       const reelAreaX = 0;
       const reelAreaY = 0;
@@ -159,8 +161,9 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
 
       // Coarser dot grain for a chunkier pixel-glass look.
       ctx.fillStyle = `rgba(230,245,255,${GLASS_DOT_ALPHA})`;
-      for (let gy = reelAreaY + 1; gy < reelAreaY + reelAreaH; gy += 5) {
-        for (let gx = reelAreaX + ((gy / 5) % 2) * 2; gx < reelAreaX + reelAreaW; gx += 5) {
+      const dotStep = bonusActive ? 7 : 5;
+      for (let gy = reelAreaY + 1; gy < reelAreaY + reelAreaH; gy += dotStep) {
+        for (let gx = reelAreaX + ((gy / dotStep) % 2) * 2; gx < reelAreaX + reelAreaW; gx += dotStep) {
           ctx.fillRect(gx, gy, 1, 1);
         }
       }
