@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿<!doctype html>
 <html lang="ja">
   <head>
@@ -13,3 +14,2037 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEEP SEA SLOTS</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
+    :root {
+      --bg: #020b18;
+      --accent: #00e5ff;
+      --accent2: #00ff88;
+      --gold: #ffd700;
+      --red: #ff4444;
+      --purple: #cc44ff;
+      --glow: 0 0 10px #00e5ff, 0 0 20px #00e5ff, 0 0 40px #00e5ff;
+      --glow-gold: 0 0 10px #ffd700, 0 0 20px #ffd700;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Press Start 2P', monospace;
+      color: var(--accent);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* BG */
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #winCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(12px, 3.5vw, 20px);
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      letter-spacing: 4px;
+      text-align: center;
+      animation: titlePulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes titlePulse {
+
+      0%,
+      100% {
+        text-shadow: var(--glow);
+      }
+
+      50% {
+        text-shadow: 0 0 20px #00e5ff, 0 0 60px #00e5ff, 0 0 100px #00e5ff;
+      }
+    }
+
+    .machine {
+      background: linear-gradient(160deg, #061e35, #020d1a 60%, #041628);
+      border: 2px solid var(--accent);
+      box-shadow: var(--glow), inset 0 0 30px rgba(0, 229, 255, 0.04);
+      border-radius: 14px;
+      padding: 16px;
+      width: 100%;
+    }
+
+    .info-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .info-box {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 6px;
+      padding: 7px;
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 6px;
+      color: rgba(0, 229, 255, 0.5);
+      margin-bottom: 3px;
+    }
+
+    .info-val {
+      font-size: 11px;
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+    }
+
+    .info-val.hot {
+      color: var(--accent2);
+      animation: hotPulse 0.5s infinite;
+    }
+
+    @keyframes hotPulse {
+
+      0%,
+      100% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.15)
+      }
+    }
+
+    /* Reels */
+    .reels-outer {
+      background: #000;
+      border: 2px solid rgba(0, 229, 255, 0.4);
+      border-radius: 6px;
+      padding: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reels-row {
+      display: flex;
+      gap: 3px;
+      position: relative;
+    }
+
+    .reel-wrap {
+      flex: 1;
+      height: 240px;
+      overflow: hidden;
+      position: relative;
+      background: #010a14;
+      border-radius: 3px;
+    }
+
+    /* Each reel strip is positioned with top */
+    .reel-strip {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .reel-cell {
+      width: 100%;
+      height: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reel-cell canvas {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+    }
+
+    /* Reach */
+    .reach-ind {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--red);
+      font-size: 8px;
+      text-shadow: 0 0 10px var(--red);
+      animation: blink 0.3s infinite;
+      z-index: 20;
+      display: none;
+      pointer-events: none;
+    }
+
+    .reach-ind.on {
+      display: block;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .bet-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .bet-label {
+      font-size: 7px;
+      color: rgba(0, 229, 255, 0.6);
+    }
+
+    .bet-btn {
+      background: transparent;
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--accent);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      padding: 6px 11px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.12s;
+    }
+
+    .bet-btn:hover {
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .bet-btn.on {
+      background: rgba(0, 229, 255, 0.18);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+    }
+
+    .spin-btn {
+      background: linear-gradient(135deg, #003355, #005580);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      padding: 13px 28px;
+      cursor: pointer;
+      border-radius: 7px;
+      text-shadow: var(--glow);
+      box-shadow: var(--glow);
+      transition: all 0.1s;
+      flex: 1;
+      max-width: 190px;
+      pointer-events: auto;
+    }
+
+    .spin-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #004466, #0077aa);
+      transform: translateY(-1px);
+    }
+
+    .spin-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .spin-btn.going {
+      animation: spinBtnAnim 0.35s infinite alternate;
+    }
+
+    @keyframes spinBtnAnim {
+      0% {
+        border-color: var(--accent);
+      }
+
+      100% {
+        border-color: var(--accent2);
+        box-shadow: 0 0 10px var(--accent2);
+      }
+    }
+
+    .max-btn {
+      background: transparent;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 13px 10px;
+      cursor: pointer;
+      border-radius: 7px;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+      transition: all 0.1s;
+    }
+
+    .max-btn:hover {
+      background: rgba(255, 215, 0, 0.08);
+    }
+
+    .msg-area {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      text-align: center;
+      padding: 5px;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.35);
+      letter-spacing: 1px;
+      line-height: 1.5;
+    }
+
+    /* Paytable */
+    .pt-toggle {
+      background: transparent;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      color: rgba(0, 229, 255, 0.55);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .pt-toggle:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .paytable {
+      display: none;
+      background: rgba(0, 0, 0, 0.82);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 7px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .paytable.open {
+      display: block;
+    }
+
+    .pt-title {
+      font-size: 7px;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 8px;
+      text-shadow: var(--glow-gold);
+    }
+
+    .pt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+      font-size: 6px;
+      gap: 6px;
+    }
+
+    .pt-row:last-child {
+      border-bottom: none;
+    }
+
+    .pt-syms {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .pt-pay {
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    /* Character */
+    .char-panel {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      pointer-events: none;
+    }
+
+    .char-bubble {
+      background: rgba(2, 11, 24, 0.96);
+      border: 2px solid var(--accent2);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 7px;
+      color: var(--accent2);
+      max-width: 160px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.28s;
+      line-height: 1.7;
+    }
+
+    .char-bubble.on {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #charSprite {
+      width: 72px;
+      height: 72px;
+      image-rendering: pixelated;
+    }
+
+    /* Jackpot */
+    .jackpot-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.88);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .jackpot-overlay.on {
+      display: flex;
+    }
+
+    .jackpot-text {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(26px, 7vw, 52px);
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: var(--glow-gold), 0 0 60px var(--gold);
+      animation: jpAnim 0.4s infinite alternate;
+      text-align: center;
+    }
+
+    @keyframes jpAnim {
+      0% {
+        transform: scale(1) rotate(-1deg);
+      }
+
+      100% {
+        transform: scale(1.05) rotate(1deg);
+      }
+    }
+
+    .jackpot-sub {
+      font-size: 11px;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      text-align: center;
+    }
+
+    .jackpot-close {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: 11px 22px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    /* Bonus - full replacement screen (not overlay) */
+    .bonus-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      background: #010010;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .bonus-screen.on {
+      display: flex;
+    }
+
+    .bonus-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(14px, 4vw, 22px);
+      font-weight: 900;
+      color: var(--purple);
+      text-shadow: 0 0 20px var(--purple), 0 0 40px var(--purple);
+      text-align: center;
+      animation: bTitlePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes bTitlePulse {
+
+      0%,
+      100% {
+        text-shadow: 0 0 20px var(--purple), 0 0 40px var(--purple);
+      }
+
+      50% {
+        text-shadow: 0 0 30px var(--purple), 0 0 60px var(--purple), 0 0 100px var(--purple);
+      }
+    }
+
+    .bonus-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .bonus-stat {
+      background: rgba(204, 68, 255, 0.08);
+      border: 1px solid rgba(204, 68, 255, 0.4);
+      border-radius: 6px;
+      padding: 8px 16px;
+      text-align: center;
+    }
+
+    .bonus-stat-label {
+      font-size: 6px;
+      color: rgba(204, 68, 255, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .bonus-stat-val {
+      font-size: 13px;
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+    }
+
+    .bonus-machine {
+      background: linear-gradient(160deg, #1a0030, #0a0018);
+      border: 2px solid var(--purple);
+      box-shadow: 0 0 20px rgba(204, 68, 255, 0.5), inset 0 0 20px rgba(204, 68, 255, 0.04);
+      border-radius: 12px;
+      padding: 14px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .bonus-reels-outer {
+      background: #000;
+      border: 2px solid rgba(204, 68, 255, 0.4);
+      border-radius: 6px;
+      padding: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bonus-reels-row {
+      display: flex;
+      gap: 3px;
+    }
+
+    .bonus-reel-wrap {
+      flex: 1;
+      height: 240px;
+      overflow: hidden;
+      position: relative;
+      background: #08001a;
+      border-radius: 3px;
+    }
+
+    .bonus-reel-strip {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bonus-reel-cell {
+      width: 100%;
+      height: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bonus-reel-cell canvas {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+    }
+
+    .bonus-win-msg {
+      min-height: 32px;
+      font-size: 9px;
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+      text-align: center;
+    }
+
+    .bonus-spin-btn {
+      background: linear-gradient(135deg, #330055, #880088);
+      border: 2px solid var(--purple);
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      padding: 14px 36px;
+      cursor: pointer;
+      border-radius: 8px;
+      box-shadow: 0 0 16px rgba(204, 68, 255, 0.6);
+      transition: all 0.1s;
+      width: 100%;
+      max-width: 280px;
+      letter-spacing: 2px;
+      pointer-events: auto;
+    }
+
+    .bonus-spin-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #440066, #aa00aa);
+      transform: translateY(-1px);
+    }
+
+    .bonus-spin-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .bonus-spin-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .bonus-spin-btn.going {
+      animation: bBtnAnim 0.3s infinite alternate;
+    }
+
+    @keyframes bBtnAnim {
+      0% {
+        border-color: var(--purple);
+      }
+
+      100% {
+        border-color: #ff88ff;
+        box-shadow: 0 0 20px #ff88ff;
+      }
+    }
+
+    .bonus-exit-btn {
+      background: transparent;
+      border: 1px solid rgba(204, 68, 255, 0.25);
+      color: rgba(204, 68, 255, 0.45);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    /* Mobile Performance Optimizations */
+    @media (max-width: 768px) {
+      :root {
+        --glow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+        /* Removed 40px glow */
+        --glow-gold: 0 0 10px #ffd700;
+        /* Removed 20px glow */
+      }
+
+      .title {
+        animation: none;
+        /* Disable expensive text-shadow pulse */
+        text-shadow: var(--glow);
+      }
+
+      .bonus-title {
+        animation: none;
+        text-shadow: 0 0 20px var(--purple);
+      }
+
+      .jackpot-text {
+        animation: none;
+      }
+
+      .info-val.hot {
+        animation: none;
+        /* Disable scale pulse */
+        color: var(--accent2);
+      }
+
+      .spin-btn.going,
+      .bonus-spin-btn.going {
+        animation: none;
+        border-color: var(--accent2);
+      }
+    }
+      .reel-strip, .bonus-reel-strip { will-change: transform; }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+  <canvas id="winCanvas"></canvas>
+
+  <div class="wrap">
+    <div class="title">⚓ DEEP SEA SLOTS ⚓</div>
+
+    <div class="machine">
+      <!-- Info -->
+      <div class="info-bar">
+        <div class="info-box">
+          <div class="info-label">COINS</div>
+          <div class="info-val" id="coinVal">1000</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">WIN</div>
+          <div class="info-val" id="winVal">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">COMBO</div>
+          <div class="info-val" id="comboVal">x1</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">FREE</div>
+          <div class="info-val" id="freeVal">0</div>
+        </div>
+      </div>
+
+      <!-- Reels -->
+      <div class="reels-outer" id="reelsOuter">
+        <div class="reels-row" id="reelsRow">
+          <div class="reel-wrap" id="rw0">
+            <div class="reel-strip" id="rs0"></div>
+          </div>
+          <div class="reel-wrap" id="rw1">
+            <div class="reel-strip" id="rs1"></div>
+          </div>
+          <div class="reel-wrap" id="rw2">
+            <div class="reel-strip" id="rs2"></div>
+          </div>
+        </div>
+        <div class="reach-ind" id="reachInd">★ REACH ★</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="bet-row">
+          <span class="bet-label">BET:</span>
+          <button class="bet-btn on" id="bBtn1" onclick="setBet(1)">1</button>
+          <button class="bet-btn" id="bBtn2" onclick="setBet(2)">2</button>
+          <button class="bet-btn" id="bBtn3" onclick="setBet(3)">3</button>
+          <span class="bet-label" style="margin-left:8px">LINES:</span>
+          <span class="bet-label" id="linesVal" style="color:var(--gold)">1</span>
+        </div>
+        <div class="action-row">
+          <button class="max-btn" onclick="setBet(3)">MAX</button>
+          <button class="spin-btn" id="spinBtn" onclick="handleSpinBtn()">SPIN</button>
+        </div>
+        <div class="msg-area"><span id="msgTxt">コインを賭けてSPINを押そう！</span></div>
+      </div>
+    </div>
+
+    <button class="pt-toggle" onclick="togglePT()">▼ 配当表</button>
+    <div class="paytable" id="ptDiv"></div>
+  </div>
+
+  <!-- Character -->
+  <div class="char-panel">
+    <div class="char-bubble" id="charBubble">ガンバレ！</div>
+    <canvas id="charSprite" width="64" height="64"></canvas>
+  </div>
+
+  <!-- Jackpot -->
+  <div class="jackpot-overlay" id="jpOverlay">
+    <div style="font-size:72px">🎰</div>
+    <div class="jackpot-text">JACKPOT!!</div>
+    <div class="jackpot-sub" id="jpSub">大当たり！！</div>
+    <button class="jackpot-close" onclick="closeJP()">続ける</button>
+  </div>
+
+  <!-- Bonus - full replacement screen -->
+  <div class="bonus-screen" id="bonusOverlay">
+    <div class="bonus-title">🌊 BONUS GAME 🌊</div>
+    <div class="bonus-stats">
+      <div class="bonus-stat">
+        <div class="bonus-stat-label">FREE SPINS</div>
+        <div class="bonus-stat-val" id="bonusInfo">8</div>
+      </div>
+      <div class="bonus-stat">
+        <div class="bonus-stat-label">獲得コイン</div>
+        <div class="bonus-stat-val" id="bonusTotal">0</div>
+      </div>
+    </div>
+    <div class="bonus-machine">
+      <div class="bonus-reels-outer">
+        <div class="bonus-reels-row">
+          <div class="bonus-reel-wrap">
+            <div class="bonus-reel-strip" id="brs0"></div>
+          </div>
+          <div class="bonus-reel-wrap">
+            <div class="bonus-reel-strip" id="brs1"></div>
+          </div>
+          <div class="bonus-reel-wrap">
+            <div class="bonus-reel-strip" id="brs2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bonus-win-msg" id="bonusWinMsg"></div>
+    <button class="bonus-spin-btn" id="bonusSpinBtn" onclick="handleBonusBtn()">FREE SPIN!</button>
+    <button class="bonus-exit-btn" onclick="endBonus()">ボーナス終了</button>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ── Audio ──────────────────────────────────────────────
+    const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+    function tone(freq, dur, type = 'square', vol = 0.25, delay = 0) {
+      try {
+        const o = AC.createOscillator(), g = AC.createGain();
+        o.connect(g); g.connect(AC.destination);
+        o.type = type; o.frequency.value = freq;
+        const t0 = AC.currentTime + delay;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+        o.start(t0); o.stop(t0 + dur + 0.05);
+      } catch (e) { }
+    }
+
+    function sfxSpin() {
+      for (let i = 0; i < 6; i++) tone(180 + i * 40, 0.06, 'square', 0.1, i * 0.05);
+    }
+    function sfxWin(amount) {
+      if (amount > 200) {
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.15, 'square', 0.3, i * 0.1));
+        setTimeout(() => [659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.18, 'square', 0.32, i * 0.08)), 500);
+      } else {
+        [440, 523, 659].forEach((f, i) => tone(f, 0.12, 'square', 0.22, i * 0.08));
+      }
+    }
+    function sfxReach() {
+      tone(300, 0.09, 'sawtooth', 0.18);
+      setTimeout(() => tone(400, 0.09, 'sawtooth', 0.18), 110);
+      setTimeout(() => tone(550, 0.14, 'sawtooth', 0.22), 220);
+    }
+    function sfxJackpot() {
+      [523, 659, 784, 1047, 1319, 1047, 784, 659, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'square', 0.38, i * 0.11));
+    }
+    function sfxBonus() {
+      [220, 277, 330, 440, 554, 659, 880].forEach((f, i) => tone(f, 0.14, 'triangle', 0.28, i * 0.09));
+    }
+    function sfxCoin() {
+      tone(1047, 0.06, 'square', 0.12);
+      tone(1319, 0.06, 'square', 0.12, 0.05);
+    }
+
+    // ── Pixel art symbol drawing ────────────────────────────
+    const SYM_COUNT = 10;
+    let symCvs = []; // populated after drawSym is defined below
+
+    function drawSym(ctx, id) {
+      ctx.clearRect(0, 0, 64, 64);
+      const S = 4;
+      const F = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x * S, y * S, w * S, h * S); };
+
+      const draws = [
+        // 0: Blue Whale (legendary - deep blue/teal)
+        () => {
+          // massive body
+          F(1, 5, 14, 6, '#1A5A8A'); F(0, 6, 16, 4, '#1E6699');
+          F(2, 4, 12, 2, '#1A5A8A'); F(3, 10, 10, 2, '#1A5A8A');
+          // belly (lighter)
+          F(3, 7, 9, 3, '#4A9AC4'); F(4, 6, 7, 1, '#5AAAD4');
+          // tail flukes
+          F(0, 4, 3, 2, '#0F4A7A'); F(0, 9, 3, 2, '#0F4A7A');
+          F(0, 3, 2, 1, '#0A3A6A'); F(0, 11, 2, 1, '#0A3A6A');
+          // pectoral fins
+          F(4, 10, 4, 3, '#0F4A7A'); F(4, 11, 5, 2, '#0F4A7A');
+          // head shape
+          F(12, 5, 4, 6, '#1A5A8A'); F(13, 4, 3, 7, '#1E6699');
+          F(14, 6, 2, 4, '#1A5A8A');
+          // mouth line
+          F(12, 9, 4, 1, '#0A3060'); F(13, 8, 3, 1, '#4A9AC4');
+          // baleen plates hint
+          F(13, 9, 1, 1, '#2A7AAA'); F(14, 9, 1, 1, '#2A7AAA');
+          // eye
+          F(12, 6, 2, 2, '#000'); F(13, 6, 1, 1, '#fff');
+          // blowhole spout
+          F(10, 0, 2, 3, '#AAEEFF'); F(9, 0, 1, 2, '#88DDFF');
+          F(11, 0, 1, 2, '#88DDFF'); F(9, 1, 1, 1, '#CCFFFF');
+          F(11, 1, 1, 1, '#CCFFFF');
+          // highlight stripe
+          F(4, 5, 6, 1, '#5AAAD4'); F(6, 4, 4, 1, '#4A9AC4');
+          // gold legendary glow
+          ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
+          ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
+          ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+        },
+        // 1: Great White Shark (cyan rare)
+        () => {
+          F(1, 6, 13, 5, '#4A9EBF'); F(2, 5, 11, 1, '#4A9EBF'); // body
+          F(3, 9, 9, 2, '#E8F4F8'); // belly
+          F(0, 7, 3, 4, '#3A8EAF'); F(0, 6, 2, 1, '#3A8EAF'); F(0, 11, 2, 1, '#3A8EAF'); // tail
+          F(7, 2, 3, 4, '#3A8EAF'); // dorsal fin
+          F(3, 10, 3, 2, '#E8F4F8'); // mouth area
+          F(13, 7, 1, 2, '#C82200'); F(13, 8, 1, 2, '#fff'); // teeth
+          F(11, 5, 2, 2, '#000'); F(12, 5, 1, 1, '#fff'); // eye
+          F(4, 4, 3, 1, '#7ABEDD'); // highlight
+          ctx.strokeStyle = '#00E5FF'; ctx.lineWidth = 1;
+          ctx.shadowColor = '#00E5FF'; ctx.shadowBlur = 7;
+          ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+        },
+        // 2: Octopus (purple)
+        () => {
+          F(3, 0, 10, 7, '#9B3DAB'); F(2, 2, 12, 6, '#9B3DAB'); // head
+          F(5, 1, 2, 2, '#FFD700'); F(9, 1, 2, 2, '#FFD700'); // eyes
+          F(6, 2, 1, 1, '#000'); F(10, 2, 1, 1, '#000'); // pupils
+          [[1, 7], [3, 7], [5, 7], [7, 7], [9, 7], [11, 7]].forEach(([x, y]) => {
+            F(x, y, 2, 7, '#7B2D8B');
+            F(x, y + 2, 1, 1, '#DD88FF'); F(x + 1, y + 5, 1, 1, '#DD88FF');
+          });
+          ctx.strokeStyle = '#CC44FF'; ctx.lineWidth = 1;
+          ctx.shadowColor = '#CC44FF'; ctx.shadowBlur = 6;
+          ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
+        },
+        // 3: Sea Turtle (green)
+        () => {
+          // shell (carapace) - hexagonal pattern
+          F(4, 3, 8, 9, '#2D6A2D'); F(3, 5, 10, 7, '#2D6A2D');
+          F(5, 2, 6, 1, '#2D6A2D'); F(5, 11, 6, 1, '#2D6A2D');
+          // shell plates pattern
+          F(5, 4, 2, 3, '#3A8A3A'); F(8, 4, 2, 3, '#3A8A3A');
+          F(6, 7, 4, 2, '#3A8A3A'); F(5, 4, 6, 1, '#4AA04A');
+          F(6, 3, 4, 1, '#4AA04A');
+          // shell highlight
+          F(5, 3, 3, 2, '#5ABB5A'); F(6, 3, 2, 1, '#6ACC6A');
+          // shell ridges
+          F(7, 4, 1, 7, '#1E4A1E'); F(5, 6, 6, 1, '#1E4A1E');
+          F(5, 8, 6, 1, '#1E4A1E');
+          // head
+          F(11, 5, 3, 3, '#4A7A2A'); F(12, 4, 2, 5, '#4A7A2A');
+          F(13, 5, 2, 3, '#3A6A1A');
+          // eye
+          F(12, 5, 1, 1, '#000'); F(13, 5, 1, 1, '#88CC44');
+          // mouth hint
+          F(13, 7, 2, 1, '#2A5A1A');
+          // flippers x4
+          F(1, 4, 3, 3, '#3A6A1A'); F(1, 3, 2, 2, '#4A7A2A'); // front left
+          F(1, 8, 3, 3, '#3A6A1A'); F(1, 9, 2, 2, '#4A7A2A'); // rear left
+          F(12, 3, 3, 3, '#3A6A1A'); // front right (behind head)
+          F(12, 9, 3, 3, '#3A6A1A'); // rear right
+          // tail
+          F(3, 6, 2, 2, '#2D6A2D');
+        },
+        // 4: Clownfish (red-orange)
+        () => {
+          F(2, 3, 11, 9, '#E04820'); // body
+          F(5, 3, 2, 9, '#fff'); F(9, 3, 2, 9, '#fff'); // white stripes
+          F(4, 3, 1, 9, '#111'); F(7, 3, 2, 9, '#111'); F(11, 3, 1, 9, '#111'); // black borders
+          F(0, 5, 3, 5, '#CC3810'); // tail
+          F(11, 4, 2, 2, '#000'); F(12, 4, 1, 1, '#fff'); // eye
+          F(5, 1, 5, 2, '#E04820'); F(5, 12, 5, 2, '#E04820'); // fins
+        },
+        // 5: Conch shell (pink)
+        () => {
+          F(3, 2, 10, 11, '#E8A0B0'); F(2, 4, 12, 9, '#E8A0B0');
+          F(5, 1, 6, 2, '#D88090'); F(6, 0, 4, 1, '#C06070');
+          F(7, 4, 2, 2, '#C06070'); F(6, 5, 4, 4, '#D88090');
+          F(3, 6, 9, 1, '#D88090'); F(3, 8, 9, 1, '#D88090'); // ridges
+          F(4, 2, 3, 2, '#F8C0D0'); // shine
+          F(7, 13, 2, 2, '#C06070'); F(8, 14, 1, 1, '#B05060'); // tip
+        },
+        // 6: Coral / Cherry (red scatter)
+        () => {
+          F(2, 2, 5, 5, '#FF4444'); F(9, 1, 5, 5, '#FF4444'); // coral balls
+          F(4, 7, 1, 5, '#228B22'); F(11, 6, 1, 4, '#228B22'); // stems
+          F(4, 11, 8, 1, '#228B22'); // branch
+          F(3, 2, 1, 1, '#FF8888'); F(10, 1, 1, 1, '#FF8888'); // shine
+          // "SCATTER" tiny indicator
+          ctx.fillStyle = '#FFD700'; ctx.font = 'bold 8px monospace';
+          ctx.fillText('★', 22, 58);
+        },
+        // 7: Seahorse (green)
+        () => {
+          F(7, 0, 4, 3, '#2E8B57'); F(8, 3, 3, 2, '#2E8B57'); // head
+          F(10, 2, 3, 1, '#2E8B57'); F(12, 1, 1, 2, '#1A5E3A'); // snout
+          F(8, 1, 1, 1, '#000'); F(9, 1, 1, 1, '#88FF88'); // eye
+          F(5, 5, 6, 7, '#2E8B57'); F(6, 4, 4, 1, '#2E8B57'); // body
+          F(6, 6, 4, 5, '#52C880'); // belly
+          F(4, 6, 1, 1, '#1A5E3A'); F(4, 8, 1, 1, '#1A5E3A'); F(4, 10, 1, 1, '#1A5E3A'); // ridges
+          F(11, 6, 2, 4, '#1A5E3A'); // fin
+          F(6, 12, 6, 2, '#2E8B57'); F(10, 14, 3, 2, '#2E8B57'); F(8, 15, 3, 1, '#1A5E3A'); // tail
+        },
+        // 8: Angler fish (dark blue, rare)
+        () => {
+          F(1, 4, 14, 8, '#1A2A6C'); F(2, 3, 12, 10, '#1A2A6C'); // body
+          F(3, 8, 9, 4, '#2A3A7C'); // belly
+          F(7, 0, 2, 4, '#fff'); F(6, 0, 4, 2, '#FFFF00'); // lure stem+glow
+          ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 12;
+          F(6, 0, 4, 2, '#FFFF00'); ctx.shadowBlur = 0;
+          F(10, 4, 3, 3, '#FFFF00'); F(11, 4, 2, 3, '#000'); F(12, 4, 1, 1, '#fff'); // eye
+          F(1, 9, 4, 3, '#000'); F(1, 9, 1, 3, '#FF3333'); // mouth
+          F(2, 9, 1, 1, '#fff'); F(2, 12, 1, 1, '#fff'); F(4, 10, 1, 1, '#fff'); // teeth
+          F(0, 5, 2, 4, '#0A1A5C'); F(14, 5, 2, 3, '#0A1A5C'); // pectoral fins
+        },
+        // 9: GIANT SQUID 🦑 (bonus symbol - legendary red/crimson)
+        () => {
+          // mantle (main body)
+          F(5, 0, 6, 7, '#CC1144'); F(4, 1, 8, 6, '#CC1144');
+          F(6, 7, 4, 2, '#AA0033');
+          // mantle highlight
+          F(6, 0, 4, 2, '#FF4477'); F(5, 2, 2, 2, '#FF3366');
+          // fins on sides of mantle
+          F(3, 2, 2, 4, '#AA0033'); F(11, 2, 2, 4, '#AA0033');
+          F(2, 3, 2, 3, '#880022'); F(12, 3, 2, 3, '#880022');
+          // big eyes (giant squid has huge eyes)
+          F(5, 3, 3, 3, '#000'); F(9, 3, 3, 3, '#000');        // eye socket
+          F(5, 3, 3, 3, '#111'); F(9, 3, 3, 3, '#111');
+          F(6, 3, 2, 2, '#FF6600'); F(10, 3, 2, 2, '#FF6600'); // iris orange
+          F(6, 4, 2, 1, '#000'); F(10, 4, 2, 1, '#000');        // pupil
+          F(6, 3, 1, 1, '#fff'); F(10, 3, 1, 1, '#fff');         // shine
+          // 8 arms + 2 long tentacles
+          // arms
+          F(3, 9, 2, 6, '#CC1144'); F(5, 9, 2, 7, '#CC1144');
+          F(7, 9, 2, 7, '#AA0033'); F(9, 9, 2, 7, '#AA0033');
+          F(11, 9, 2, 6, '#CC1144'); F(13, 9, 2, 5, '#CC1144');
+          F(1, 9, 2, 5, '#AA0033');
+          // 2 long tentacles (longer, club-tipped)
+          F(6, 9, 1, 8, '#880022'); F(9, 9, 1, 8, '#880022');
+          F(5, 15, 3, 1, '#FF2255'); F(8, 15, 3, 1, '#FF2255'); // sucker clubs
+          // sucker dots on arms
+          F(3, 11, 1, 1, '#FF4477'); F(5, 12, 1, 1, '#FF4477');
+          F(11, 11, 1, 1, '#FF4477'); F(9, 12, 1, 1, '#FF4477');
+          // special glow effect around whole symbol
+          ctx.shadowColor = '#FF0055';
+          ctx.shadowBlur = 14;
+          F(5, 0, 6, 9, 'rgba(200,0,60,0)'); // invisible fill just to trigger glow
+          ctx.shadowBlur = 0;
+          // golden crown hint (bonus indicator)
+          F(6, 0, 1, 1, '#FFD700'); F(8, 0, 1, 1, '#FFD700'); F(10, 0, 1, 1, '#FFD700');
+          F(7, 0, 3, 1, '#FFD700');
+        },
+      ];
+
+      if (draws[id]) draws[id]();
+    }
+
+    // Build pre-rendered symbol canvases (called from initDom)
+    function initSymCvs() {
+      symCvs = [];
+      for (let i = 0; i < SYM_COUNT; i++) {
+        const c = document.createElement('canvas');
+        c.width = 64; c.height = 64;
+        drawSym(c.getContext('2d'), i);
+        symCvs.push(c);
+      }
+    }
+
+    // ── Symbol data ─────────────────────────────────────────
+    const SYMS = [
+      { name: 'シロナガスクジラ', pay2: 50, pay3: 500, weight: 3 },
+      { name: 'ホオジロザメ', pay2: 30, pay3: 200, weight: 8 },
+      { name: 'タコ', pay2: 15, pay3: 80, weight: 14 },
+      { name: 'ウミガメ', pay2: 15, pay3: 70, weight: 14 },
+      { name: 'クマノミ', pay2: 8, pay3: 30, weight: 24 },
+      { name: 'コンク貝', pay2: 6, pay3: 20, weight: 28 },
+      { name: 'コーラル', pay2: 4, pay3: 12, weight: 36 },
+      { name: 'タツノオトシゴ', pay2: 10, pay3: 50, weight: 18 },
+      { name: 'チョウチンアンコウ', pay2: 20, pay3: 120, weight: 11 },
+      { name: 'ダイオウイカ🦑', pay2: 0, pay3: 0, weight: 4 }, // id=9: bonus only
+    ];
+    const BONUS_SYM = 9; // Giant Squid triggers bonus when 3 line up on centre row
+
+    // ── Reel strips ──────────────────────────────────────────
+    function makeStrip() {
+      const arr = [];
+      SYMS.forEach((s, i) => { for (let w = 0; w < s.weight; w++) arr.push(i); });
+      // shuffle
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = 0 | Math.random() * (i + 1);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // 3 reel strips for main + bonus
+    const STRIPS = [makeStrip(), makeStrip(), makeStrip()];
+    const BSTRIPS = [makeStrip(), makeStrip(), makeStrip()];
+
+    // ── Game state ───────────────────────────────────────────
+    let coins = 1000;
+    let bet = 1;
+    let combo = 0;
+    let freeSpin = 0;
+    let isSpinning = false;
+    // Current top-of-reel index (fractional during animation)
+    let rPos = [0, 0, 0]; // main
+    let bPos = [0, 0, 0]; // bonus
+    let bonusActive = false;
+    let bonusFree = 0;
+    let bonusWon = 0;
+
+    // Pay lines [row0, row1, row2] — rows 0/1/2 = top/mid/bot
+    const LINES = [
+      [1, 1, 1], // centre  (always)
+      [0, 0, 0], // top     (bet≥2)
+      [2, 2, 2], // bottom  (bet≥2)
+      [0, 1, 2], // diag ↘  (bet=3)
+      [2, 1, 0], // diag ↗  (bet=3)
+    ];
+
+    function activeLines() {
+      if (bet === 1) return [LINES[0]];
+      if (bet === 2) return LINES.slice(0, 3);
+      return LINES;
+    }
+
+    // ── Build reel DOM ───────────────────────────────────────
+    const CELL_H = 80; // px per cell
+    const VISIBLE = 3; // visible rows
+
+    function buildReelDom(stripId, stripData, isBonus = false) {
+      const el = document.getElementById(stripId);
+      if (!el) return;
+      el.innerHTML = '';
+      const cellClass = isBonus ? 'bonus-reel-cell' : 'reel-cell';
+      const total = stripData.length + VISIBLE;
+      for (let i = 0; i < total; i++) {
+        const div = document.createElement('div');
+        div.className = cellClass;
+        const cv = document.createElement('canvas');
+        cv.width = 64; cv.height = 64;
+        const symIdx = stripData[i % stripData.length];
+        const _c = symCvs[symIdx];
+        if (_c) { cv.getContext('2d').drawImage(_c, 0, 0); }
+        else { drawSym(cv.getContext('2d'), symIdx); }
+        div.appendChild(cv);
+        el.appendChild(div);
+      }
+    }
+
+    function initDom() {
+      initSymCvs(); // must be first - builds symCvs[]
+      for (let r = 0; r < 3; r++) {
+        buildReelDom(`rs${r}`, STRIPS[r], false);
+        // bonus reels built fresh each time in startBonus()
+      }
+      refreshDisplay(false);
+      buildPaytable();
+    }
+
+    // Render reels at current positions
+    // Performance-optimised display:
+    // - Uses symCvs cache (drawImage) instead of drawSym every frame
+    // - Tracks last-drawn symbol per cell to skip redundant redraws
+    // - Moves strip via CSS transform only (no per-cell layout thrash)
+    const cellLastSym = {}; // key: "pfx_r_i" -> last symIdx drawn
+
+    function refreshDisplay(isBonus) {
+      const pos    = isBonus ? bPos : rPos;
+      const strips = isBonus ? BSTRIPS : STRIPS;
+      const pfx    = isBonus ? 'brs' : 'rs';
+      const cellClass = isBonus ? '.bonus-reel-cell' : '.reel-cell';
+
+      for (let r = 0; r < 3; r++) {
+        const stripEl = document.getElementById(`${pfx}${r}`);
+        if (!stripEl) continue;
+        const strip = strips[r];
+        const L     = strip.length;
+        const cells = stripEl.querySelectorAll(cellClass);
+        const topIdx = ((Math.floor(pos[r]) % L) + L) % L;
+
+        cells.forEach((cell, i) => {
+          const symIdx = strip[(topIdx + i) % L];
+          const key    = `${pfx}_${r}_${i}`;
+          // Only redraw if symbol changed
+          if (cellLastSym[key] === symIdx) return;
+          cellLastSym[key] = symIdx;
+          const cv = cell.querySelector('canvas');
+          if (!cv) return;
+          // Use pre-rendered cache - much faster than drawSym
+          const cached = symCvs[symIdx];
+          if (cached) {
+            const ctx = cv.getContext('2d');
+            ctx.clearRect(0, 0, 64, 64);
+            ctx.drawImage(cached, 0, 0);
+          } else {
+            // Fallback: draw directly (only if cache not ready)
+            drawSym(cv.getContext('2d'), symIdx);
+          }
+        });
+
+        // Scroll via transform (GPU composited, no layout thrash)
+        const frac = pos[r] - Math.floor(pos[r]);
+        stripEl.style.transform = `translateY(${-frac * CELL_H}px)`;
+      }
+    }
+
+    // Read the 3×3 visible grid [reel][row]
+    function getGrid(isBonus) {
+      const pos = isBonus ? bPos : rPos;
+      const strips = isBonus ? BSTRIPS : STRIPS;
+      const grid = [];
+      for (let r = 0; r < 3; r++) {
+        const strip = strips[r];
+        const L = strip.length;
+        const top = Math.floor(pos[r]) % L;
+        grid.push([
+          strip[top % L],
+          strip[(top + 1) % L],
+          strip[(top + 2) % L],
+        ]);
+      }
+      return grid;
+    }
+
+    // Evaluate win lines against grid
+    function evalLines(grid, lines) {
+      let total = 0;
+      const wins = [];
+      lines.forEach((line, li) => {
+        // line = [row for reel0, row for reel1, row for reel2]
+        const s0 = grid[0][line[0]];
+        const s1 = grid[1][line[1]];
+        const s2 = grid[2][line[2]];
+        if (s0 === s1 && s1 === s2) {
+          const pay = SYMS[s0].pay3 * bet;
+          total += pay;
+          wins.push({ line, syms: [s0, s1, s2], pay, count: 3 });
+        } else if (s0 === s1 && SYMS[s0].pay2) {
+          const pay = SYMS[s0].pay2 * bet;
+          total += pay;
+          wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
+        }
+      });
+      return { total, wins };
+    }
+
+    function isJackpot(wins) {
+      return wins.some(w => w.syms[0] === 0 && w.count === 3);
+    }
+
+    function isBonus(grid, lines) {
+      // Bonus: Giant Squid (id=9) on ANY active payline (3 symbols)
+      let bonusTrigger = false;
+      lines.forEach(line => {
+        const s0 = grid[0][line[0]];
+        const s1 = grid[1][line[1]];
+        const s2 = grid[2][line[2]];
+        if (s0 === BONUS_SYM && s1 === BONUS_SYM && s2 === BONUS_SYM) {
+          bonusTrigger = true;
+        }
+      });
+      return bonusTrigger;
+    }
+
+    // ── Animate one reel ─────────────────────────────────────
+    function animReel(reelIdx, targetPos, duration, isBonus, onDone) {
+      const arr = isBonus ? bPos : rPos;
+      const strips = isBonus ? BSTRIPS : STRIPS;
+      const L = strips[reelIdx].length;
+      const start = arr[reelIdx];
+      const t0 = performance.now();
+
+      // Ensure we always spin forward at least 2 full rotations
+      let dist = targetPos - start;
+      while (dist < L * 2) dist += L;
+      const realTarget = start + dist;
+
+      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+      function frame(now) {
+        const elapsed = now - t0;
+        let p = Math.min(elapsed / duration, 1);
+        // Apply easing only after 70%
+        if (p > 0.7) {
+          const q = (p - 0.7) / 0.3;
+          p = 0.7 + 0.3 * easeOut(q);
+        }
+        arr[reelIdx] = start + dist * p;
+        refreshDisplay(isBonus);
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          // Snap to exact integer target (mod strip length)
+          arr[reelIdx] = targetPos % L;
+          refreshDisplay(isBonus);
+          if (onDone) onDone();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    let stopState = 0;
+    let reelAnimIds = [null, null, null]; // per-reel ongoing anim flags
+    let reelRunning = [false, false, false];
+    let isSnapping = false; // Add internal sync flag to prevent stopping while animating a snap
+
+    function handleSpinBtn() {
+      if (isSnapping) return; // Important: Don't allow click until current visual snap completes
+
+      if (stopState === 0) {
+        doSpin();
+      } else if (stopState >= 1 && stopState <= 3) {
+        stopNextReel();
+      }
+    }
+
+    function doSpin() {
+      if (isSpinning) return;
+      if (freeSpin === 0 && coins < bet) {
+        setMsg('コインが足りない！');
+        return;
+      }
+      if (AC.state === 'suspended') AC.resume();
+
+      isSpinning = true;
+      stopState = 1;
+      clearPaylines();
+      document.getElementById('winVal').textContent = '0';
+      setMsg('');
+
+      const isFree = freeSpin > 0;
+      if (isFree) {
+        freeSpin--;
+        document.getElementById('freeVal').textContent = freeSpin;
+      } else {
+        coins -= bet;
+        updateCoins();
+      }
+
+      sfxSpin();
+      charSay(isFree ? '🎰 フリースピン！' : rnd(['行くぞ！', '当たれ〜！', 'ドキドキ...', '今度こそ！']));
+
+      // Pre-decide target positions for all 3 reels
+      const targets = [0, 1, 2].map(r => Math.floor(Math.random() * STRIPS[r].length));
+
+      // Start all 3 reels spinning freely (no auto-stop)
+      reelRunning = [true, true, true];
+      spinReelFree(0, targets[0]);
+      spinReelFree(1, targets[1]);
+      spinReelFree(2, targets[2]);
+
+      // Update button to STOP mode
+      updateStopBtn();
+    }
+
+    // Speeds for each reel while freely spinning
+    const REEL_SPEEDS = [0.32, 0.30, 0.28];
+
+    // Single master loop updates all spinning reels each frame
+    let masterSpinId = null;
+    function masterSpinLoop() {
+      let anyRunning = false;
+      for (let r = 0; r < 3; r++) {
+        if (reelRunning[r]) {
+          rPos[r] = (rPos[r] + REEL_SPEEDS[r]) % STRIPS[r].length;
+          anyRunning = true;
+        }
+      }
+      refreshDisplay(false);
+      if (anyRunning) masterSpinId = requestAnimationFrame(masterSpinLoop);
+      else masterSpinId = null;
+    }
+
+    // Spin all reels - called once at start
+    function spinReelFree(r, target) {
+      // Just mark as running; masterSpinLoop does the actual work
+      // For r===0, start the master loop
+      if (r === 0) {
+        if (masterSpinId) cancelAnimationFrame(masterSpinId);
+        masterSpinId = requestAnimationFrame(masterSpinLoop);
+      }
+    }
+
+    // Stop next reel in sequence (0→1→2)
+    function stopNextReel() {
+      const r = stopState - 1; // stopState 1→reel0, 2→reel1, 3→reel2
+      if (r < 0 || r > 2) return;
+
+      reelRunning[r] = false;
+      isSnapping = true; // lock input
+
+      // Snap to nearest clean position
+      const strip = STRIPS[r];
+      const L = strip.length;
+      const target = Math.round(rPos[r]) % L;
+
+      // Short ease-in to final snap
+      snapReel(r, target, () => {
+        stopState++;
+
+        // Reach check after reel 0 stops
+        if (r === 0) {
+          const g = getGrid(false);
+          const lines = activeLines();
+          let reach = false;
+          lines.forEach(line => { if (g[0][line[0]] === g[1][line[1]]) reach = true; });
+          if (reach) {
+            sfxReach();
+            document.getElementById('reachInd').classList.add('on');
+            charSay('🎯 リーチ！！もう一個！！');
+          }
+        }
+
+        // Hide reach if reel 1 stopped and no match
+        if (r === 1) {
+          const g = getGrid(false);
+          const lines = activeLines();
+          let stillReach = false;
+          lines.forEach(line => { if (g[0][line[0]] === g[1][line[1]]) stillReach = true; });
+          if (!stillReach) document.getElementById('reachInd').classList.remove('on');
+        }
+
+        if (stopState === 4) {
+          // All stopped
+          document.getElementById('reachInd').classList.remove('on');
+          updateStopBtn(); // back to SPIN
+          isSnapping = false; // unlock input before evaluating win
+          finishSpin();
+        } else {
+          updateStopBtn();
+          isSnapping = false; // unlock input for next reel
+        }
+      });
+
+      sfxCoin(); // satisfying click sound on stop
+    }
+
+    // Quick snap animation into exact position
+    function snapReel(r, target, onDone) {
+      const strip = STRIPS[r];
+      const L = strip.length;
+      const start = rPos[r];
+      const t0 = performance.now();
+      const SNAP_DUR = 150; // ms
+
+      // Pause master loop during snap; we handle display ourselves
+      if (masterSpinId) { cancelAnimationFrame(masterSpinId); masterSpinId = null; }
+
+      // figure out shortest distance (allow going backward a tiny bit for clean snap)
+      let dist = ((target - start) % L + L) % L;
+      if (dist > L * 0.3) dist -= L; // snap backward if much closer
+
+      function frame(now) {
+        const p = Math.min((now - t0) / SNAP_DUR, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        // Keep other running reels moving during this reel's snap
+        for (let i = 0; i < 3; i++) {
+          if (reelRunning[i]) rPos[i] = (rPos[i] + REEL_SPEEDS[i]) % STRIPS[i].length;
+        }
+        rPos[r] = ((start + dist * ease) % L + L) % L;
+        refreshDisplay(false);
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          rPos[r] = ((target % L) + L) % L;
+          refreshDisplay(false);
+          // Restart master loop if any reels still spinning
+          if (reelRunning.some(v => v) && !masterSpinId) {
+            masterSpinId = requestAnimationFrame(masterSpinLoop);
+          }
+          if (onDone) onDone();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function updateStopBtn() {
+      const btn = document.getElementById('spinBtn');
+      if (stopState === 0) {
+        btn.textContent = 'SPIN';
+        btn.disabled = false;
+        btn.classList.remove('stop-mode', 'going');
+      } else if (stopState >= 1 && stopState <= 3) {
+        const labels = ['STOP ◀', 'STOP ◀', 'STOP ◀'];
+        const reel = ['左', '中', '右'];
+        btn.textContent = `STOP  ${reel[stopState - 1]}`;
+        btn.disabled = false;
+        btn.classList.add('stop-mode');
+        btn.classList.remove('going');
+      } else {
+        // Keep enabled visually but input might be locked by isSnapping logic
+        btn.disabled = false;
+        btn.classList.remove('stop-mode', 'going');
+      }
+    }
+
+    function finishSpin() {
+      const grid = getGrid(false);
+      const lines = activeLines();
+      const { total, wins } = evalLines(grid, lines);
+      const jp = isJackpot(wins);
+      const bonus = isBonus(grid, lines);
+
+      if (total > 0) {
+        combo++;
+        let mult = 1;
+        if (combo >= 5) mult = 4;
+        else if (combo >= 3) mult = 2;
+        else if (combo >= 2) mult = 1.5;
+
+        const final = Math.floor(total * mult);
+        coins += final;
+        updateCoins();
+        document.getElementById('winVal').textContent = final;
+
+        const comboEl = document.getElementById('comboVal');
+        if (combo >= 2) {
+          comboEl.textContent = `x${mult}🔥`;
+          comboEl.className = 'info-val hot';
+          charSay(`🔥 コンボ ${combo}連！ ${mult}倍！`);
+        } else {
+          comboEl.textContent = 'x1';
+          comboEl.className = 'info-val';
+        }
+
+        drawPaylines(wins);
+        sfxWin(final);
+        spawnParticles(final);
+
+        if (!jp && !bonus) setMsg(`+${final} コイン！` + (mult > 1 ? ` (${mult}倍！)` : ''), true);
+        if (jp) { setTimeout(() => showJackpot(final), 600); return; }
+      } else {
+        combo = 0;
+        document.getElementById('comboVal').textContent = 'x1';
+        document.getElementById('comboVal').className = 'info-val';
+        setMsg(rnd(['はずれ...', '惜しい！', '次は当たる！']));
+        charSay(rnd(['うぅ...', 'ドンマイ！', 'もう一回！', '次こそ！']));
+      }
+
+      if (bonus) { setTimeout(startBonus, 1200); return; }
+
+      isSpinning = false;
+      stopState = 0;
+      updateStopBtn();
+    }
+
+    // Paylines removed
+    function drawPaylines(wins) { }
+    function clearPaylines() { }
+
+    // ── Jackpot ──────────────────────────────────────────────
+    function showJackpot(amount) {
+      sfxJackpot();
+      document.getElementById('jpSub').textContent = `クジラ3体！！ +${amount} コイン！！`;
+      document.getElementById('jpOverlay').classList.add('on');
+      charSay('🐋🐋🐋 ジャックポット！！！', 'excited');
+      spawnJPParticles();
+    }
+    function closeJP() {
+      document.getElementById('jpOverlay').classList.remove('on');
+      isSpinning = false;
+      stopState = 0;
+      updateStopBtn();
+    }
+
+    // ── Bonus game ───────────────────────────────────────────
+    function startBonus() {
+      bonusActive = true; bonusFree = 8; bonusWon = 0;
+      bPos = [0, 0, 0]; bStopState = 0;
+      bReelRunning = [false, false, false];
+      document.getElementById('bonusInfo').textContent = bonusFree;
+      document.getElementById('bonusTotal').textContent = 0;
+      document.getElementById('bonusWinMsg').textContent = '';
+      sfxBonus();
+      charSay('🦑 ダイオウイカ3体！\nボーナス発動！！', 'excited');
+      // Show overlay first so layout is computed
+      document.getElementById('bonusOverlay').classList.add('on');
+      // Build bonus reel DOM (fresh each time) with bonus cell class
+      for (let r = 0; r < 3; r++) buildReelDom(`brs${r}`, BSTRIPS[r], true);
+      // Wait 2 frames for layout to settle, then render & set button
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        refreshDisplay(true);
+        updateBonusBtn();
+      }));
+    }
+
+    // Bonus stop-button state: 0=idle, 1=spinning, 2=reel0 stopped, 3=reel1 stopped, 4=all stopped
+    let bStopState = 0;
+    let bReelRunning = [false, false, false];
+    let bMasterAnimId = null;
+    const B_SPEEDS = [0.30, 0.28, 0.26];
+    let bIsSnapping = false;
+
+    function handleBonusBtn() {
+      if (bIsSnapping) return; // Wait for current snap to finish
+
+      if (bonusFree <= 0) { endBonus(); return; }
+      if (bStopState === 0) {
+        doBonusSpin();
+      } else if (bStopState >= 1 && bStopState <= 3) {
+        stopNextBonusReel();
+      }
+    }
+
+    function doBonusSpin() {
+      if (bonusFree <= 0) { endBonus(); return; }
+      bonusFree--;
+      document.getElementById('bonusInfo').textContent = bonusFree;
+      document.getElementById('bonusWinMsg').textContent = '';
+      bStopState = 1;
+      bReelRunning = [true, true, true];
+      sfxSpin();
+      updateBonusBtn();
+
+      // Start master loop for bonus reels
+      if (bMasterAnimId) cancelAnimationFrame(bMasterAnimId);
+      bMasterAnimId = requestAnimationFrame(bMasterLoop);
+    }
+
+    function bMasterLoop() {
+      let any = false;
+      for (let r = 0; r < 3; r++) {
+        if (bReelRunning[r]) {
+          bPos[r] = (bPos[r] + B_SPEEDS[r]) % BSTRIPS[r].length;
+          any = true;
+        }
+      }
+      refreshDisplay(true);
+      if (any) bMasterAnimId = requestAnimationFrame(bMasterLoop);
+      else bMasterAnimId = null;
+    }
+
+    function stopNextBonusReel() {
+      const r = bStopState - 1;
+      if (r < 0 || r > 2) return;
+
+      bReelRunning[r] = false;
+      bIsSnapping = true;
+
+      if (bMasterAnimId) { cancelAnimationFrame(bMasterAnimId); bMasterAnimId = null; }
+
+      const L = BSTRIPS[r].length;
+      const target = Math.round(bPos[r]) % L;
+      snapBonusReel(r, target, () => {
+        bStopState++;
+        if (bStopState === 4) {
+          // All stopped — evaluate
+          bIsSnapping = false;
+          finishBonusSpin();
+        } else {
+          // Restart master loop for remaining reels
+          bMasterAnimId = requestAnimationFrame(bMasterLoop);
+          updateBonusBtn();
+          bIsSnapping = false;
+        }
+      });
+      sfxCoin();
+    }
+
+    function snapBonusReel(r, target, onDone) {
+      const L = BSTRIPS[r].length;
+      const start = bPos[r];
+      const t0 = performance.now();
+      const DUR = 150;
+      let dist = ((target - start) % L + L) % L;
+      if (dist > L * 0.3) dist -= L;
+
+      function frame(now) {
+        const p = Math.min((now - t0) / DUR, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        // Keep other bonus reels moving
+        for (let i = 0; i < 3; i++) {
+          if (bReelRunning[i]) bPos[i] = (bPos[i] + B_SPEEDS[i]) % BSTRIPS[i].length;
+        }
+        bPos[r] = ((start + dist * ease) % L + L) % L;
+        refreshDisplay(true);
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          bPos[r] = ((target % L) + L) % L;
+          refreshDisplay(true);
+          if (onDone) onDone();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function finishBonusSpin() {
+      bStopState = 0;
+      const btn = document.getElementById('bonusSpinBtn');
+      btn.classList.remove('stop-mode');
+      const grid = getGrid(true);
+      const { total } = evalLines(grid, LINES);
+      if (total > 0) {
+        const bonus2x = total * 2;
+        bonusWon += bonus2x;
+        coins += bonus2x;
+        updateCoins();
+        sfxWin(total);
+        document.getElementById('bonusWinMsg').textContent = `+${bonus2x} コイン！ (2倍！)`;
+        charSay(`🎰 +${bonus2x} コイン！`);
+      } else {
+        document.getElementById('bonusWinMsg').textContent = 'はずれ...';
+      }
+      document.getElementById('bonusTotal').textContent = bonusWon;
+      updateBonusBtn();
+    }
+
+    function updateBonusBtn() {
+      const btn = document.getElementById('bonusSpinBtn');
+      if (bStopState === 0) {
+        if (bonusFree <= 0) {
+          btn.textContent = 'FINISH!';
+        } else {
+          btn.textContent = 'FREE SPIN!';
+        }
+        btn.disabled = false;
+        btn.classList.remove('stop-mode', 'going');
+      } else if (bStopState >= 1 && bStopState <= 3) {
+        const labels = ['左', '中', '右'];
+        btn.textContent = `STOP  ${labels[bStopState - 1]}`;
+        btn.disabled = false;
+        btn.classList.add('stop-mode');
+        btn.classList.remove('going');
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('stop-mode', 'going');
+      }
+    }
+
+    function endBonus() {
+      bonusActive = false;
+      bStopState = 0;
+      bReelRunning = [false, false, false];
+      if (bMasterAnimId) { cancelAnimationFrame(bMasterAnimId); bMasterAnimId = null; }
+      document.getElementById('bonusOverlay').classList.remove('on');
+      setMsg(`ボーナス終了！ 獲得: ${bonusWon} コイン`, true);
+      spawnParticles(bonusWon);
+      isSpinning = false;
+      stopState = 0;
+      updateStopBtn();
+    }
+
+    // ── Particles ────────────────────────────────────────────
+    const winCvs = document.getElementById('winCanvas');
+    const winCtx = winCvs.getContext('2d');
+    let parts = [];
+    let pAnimId = null;
+
+    function resizeWinCvs() { winCvs.width = innerWidth; winCvs.height = innerHeight; }
+    resizeWinCvs();
+    window.addEventListener('resize', resizeWinCvs);
+
+    function spawnParticles(amount) {
+      const isMobile = window.innerWidth < 600;
+      const n = Math.min(isMobile ? 30 : 80, 12 + (amount / 4 | 0));
+      const cx = winCvs.width / 2, cy = winCvs.height / 2;
+      const colors = ['#FFD700', '#FFEA00', '#FFAA00', '#00E5FF'];
+      for (let i = 0; i < n; i++) {
+        parts.push({
+          x: cx + (Math.random() - .5) * 220,
+          y: cy,
+          vx: (Math.random() - .5) * 9,
+          vy: -Math.random() * 12 - 2,
+          size: 4 + Math.random() * 6,
+          c: colors[0 | Math.random() * colors.length],
+          life: 1, decay: 0.014 + Math.random() * 0.02,
+        });
+      }
+      if (!pAnimId) animParts();
+    }
+
+    function spawnJPParticles() {
+      const colors = ['#FFD700', '#FF3366', '#00E5FF', '#CC44FF', '#FFEA00'];
+      for (let i = 0; i < 160; i++) {
+        parts.push({
+          x: Math.random() * winCvs.width, y: -20,
+          vx: (Math.random() - .5) * 5, vy: 2 + Math.random() * 5,
+          size: 6 + Math.random() * 10,
+          c: colors[0 | Math.random() * colors.length],
+          life: 1, decay: 0.004 + Math.random() * 0.004,
+        });
+      }
+      if (!pAnimId) animParts();
+    }
+
+    function animParts() {
+      winCtx.clearRect(0, 0, winCvs.width, winCvs.height);
+      parts = parts.filter(p => p.life > 0);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.life -= p.decay;
+        winCtx.globalAlpha = Math.max(0, p.life);
+        winCtx.fillStyle = p.c;
+        // draw a simple pixel art "coin" / square
+        winCtx.fillRect(p.x, p.y, p.size, p.size);
+        // little inner shine
+        winCtx.fillStyle = '#fff';
+        winCtx.globalAlpha = Math.max(0, p.life * 0.6);
+        winCtx.fillRect(p.x, p.y, p.size * 0.3, p.size * 0.3);
+      });
+      winCtx.globalAlpha = 1;
+      if (parts.length > 0) pAnimId = requestAnimationFrame(animParts);
+      else { pAnimId = null; winCtx.clearRect(0, 0, winCvs.width, winCvs.height); }
+    }
+
+    // ── Character (axolotl) ──────────────────────────────────
+    const charCvs = document.getElementById('charSprite');
+    const charCtx2 = charCvs.getContext('2d');
+
+    function drawChar(mood = 'idle') {
+      charCtx2.clearRect(0, 0, 64, 64);
+      const S = 4;
+      const F = (x, y, w, h, c) => { charCtx2.fillStyle = c; charCtx2.fillRect(x * S, y * S, w * S, h * S); };
+      const body = mood === 'excited' ? '#FF44AA' : mood === 'worried' ? '#AA88CC' : '#FF88CC';
+      F(4, 5, 8, 7, body); F(3, 7, 10, 5, body); // body
+      F(2, 3, 2, 4, '#FF44AA'); F(12, 3, 2, 4, '#FF44AA'); // gills
+      F(1, 2, 1, 3, '#FF6699'); F(13, 2, 1, 3, '#FF6699'); // gill tips
+      F(5, 5, 6, 5, body); // face base
+      // eyes
+      if (mood === 'happy' || mood === 'excited') {
+        F(6, 6, 2, 1, '#000'); F(9, 6, 2, 1, '#000');
+        F(7, 7, 1, 1, '#000'); F(10, 7, 1, 1, '#000');
+      } else {
+        F(6, 6, 2, 2, '#000'); F(9, 6, 2, 2, '#000');
+        F(7, 6, 1, 1, '#fff'); F(10, 6, 1, 1, '#fff');
+      }
+      // mouth
+      if (mood === 'happy' || mood === 'excited') {
+        F(7, 9, 3, 1, '#000'); F(6, 8, 1, 1, '#000'); F(10, 8, 1, 1, '#000');
+      } else if (mood === 'sad') {
+        F(7, 10, 3, 1, '#000'); F(6, 9, 1, 1, '#000'); F(10, 9, 1, 1, '#000');
+      } else {
+        F(7, 9, 3, 1, '#000');
+      }
+      F(5, 8, 1, 1, '#FFAACC'); F(11, 8, 1, 1, '#FFAACC'); // blush
+      F(5, 12, 6, 2, body); // tail
+      F(4, 13, 2, 2, '#FF44AA'); F(10, 13, 2, 2, '#FF44AA');
+      F(4, 11, 2, 2, body); F(10, 11, 2, 2, body); // legs
+    }
+    drawChar('happy');
+
+    let charTimer = null;
+    function charSay(msg, mood = 'happy') {
+      drawChar(mood);
+      const b = document.getElementById('charBubble');
+      b.textContent = msg; b.classList.add('on');
+      clearTimeout(charTimer);
+      charTimer = setTimeout(() => { b.classList.remove('on'); drawChar('idle'); }, 2600);
+    }
+
+    // ── UI helpers ───────────────────────────────────────────
+    function setBet(n) {
+      if (isSpinning) return;
+      bet = n;
+      [1, 2, 3].forEach(i => {
+        document.getElementById(`bBtn${i}`).className = 'bet-btn' + (i === n ? ' on' : '');
+      });
+      document.getElementById('linesVal').textContent = n === 1 ? '1' : n === 2 ? '3' : '5';
+    }
+
+    function updateCoins() { document.getElementById('coinVal').textContent = coins; }
+
+    function setMsg(txt, win = false) {
+      const el = document.getElementById('msgTxt');
+      el.textContent = txt;
+      el.style.color = win ? 'var(--gold)' : '';
+    }
+
+    function setSpinBtn(busy) {
+      // Legacy shim - use updateStopBtn() for full control
+      if (!busy) { stopState = 0; updateStopBtn(); }
+    }
+
+    function togglePT() {
+      document.getElementById('ptDiv').classList.toggle('open');
+    }
+
+    function buildPaytable() {
+      const div = document.getElementById('ptDiv');
+      div.innerHTML = '<div class="pt-title">💰 PAY TABLE 💰</div>';
+      SYMS.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'pt-row';
+        const cv = document.createElement('canvas');
+        cv.width = 28; cv.height = 28; cv.style.imageRendering = 'pixelated';
+        const ctx = cv.getContext('2d'); ctx.drawImage(symCvs[i], 0, 0, 28, 28);
+        const syms = document.createElement('div'); syms.className = 'pt-syms';
+        syms.appendChild(cv);
+        const name = document.createElement('div'); name.style.color = '#ccc'; name.textContent = s.name;
+        const pay = document.createElement('div'); pay.className = 'pt-pay';
+        pay.textContent = (i === 9) ? 'BONUS発動！' : `2x:${s.pay2} / 3x:${s.pay3}`;
+        row.appendChild(syms); row.appendChild(name); row.appendChild(pay);
+        div.appendChild(row);
+      });
+    }
+
+    function rnd(arr) { return arr[0 | Math.random() * arr.length]; }
+
+    // ── Background animation ─────────────────────────────────
+    const bgCvs = document.getElementById('bgCanvas');
+    const bgCtx = bgCvs.getContext('2d');
+
+    // Create an offscreen canvas to cache the heavy static gradients
+    const bgCache = document.createElement('canvas');
+    const bgCacheCtx = bgCache.getContext('2d');
+
+    function resizeBg() {
+      // Handle high devicePixelRatio on mobile for crispness but limit it so it doesn't get exponentially heavy
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x resolution
+      const w = innerWidth;
+      const h = innerHeight;
+
+      // Setup main display canvas
+      bgCvs.width = w * dpr;
+      bgCvs.height = h * dpr;
+      bgCtx.scale(dpr, dpr);
+
+      // Setup cache canvas
+      bgCache.width = w * dpr;
+      bgCache.height = h * dpr;
+      bgCacheCtx.scale(dpr, dpr);
+
+      // Pre-draw the heavy static gradients ONCE to the cache
+      const g = bgCacheCtx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#010815'); g.addColorStop(0.5, '#020e20'); g.addColorStop(1, '#041628');
+      bgCacheCtx.fillStyle = g; bgCacheCtx.fillRect(0, 0, w, h);
+
+      // Draw the radial glows to cache (pseudo-static now, animated slightly by opacity)
+      for (let i = 0; i < 4; i++) {
+        const cx = w * (0.1 + i * 0.25);
+        const cy = h * 0.2;
+        const rg = bgCacheCtx.createRadialGradient(cx, cy, 0, cx, cy, 140);
+        rg.addColorStop(0, 'rgba(0,120,200,0.06)'); rg.addColorStop(1, 'transparent');
+        bgCacheCtx.fillStyle = rg; bgCacheCtx.fillRect(0, 0, w, h);
+      }
+    }
+    resizeBg(); window.addEventListener('resize', resizeBg);
+
+    const BUBBLES = Array.from({ length: 24 }, () => ({
+      x: Math.random() * innerWidth, y: innerHeight + Math.random() * 300,
+      r: 2 + Math.random() * 6, s: 0.25 + Math.random() * 0.7,
+      dx: (Math.random() - .5) * 0.25, a: 0.1 + Math.random() * 0.2,
+    }));
+
+    function animBg() {
+      const w = innerWidth, h = innerHeight;
+
+      // 1. Draw the pre-rendered static background (massive GPU saving!)
+      bgCtx.drawImage(bgCache, 0, 0, w, h);
+
+      // 2. Add subtle global pulsation by overlaying a very faint black box
+      const t = Date.now() * 0.0004;
+      const pulse = Math.sin(t) * 0.015;
+      bgCtx.fillStyle = `rgba(0,0,0,${0.03 + pulse})`;
+      bgCtx.fillRect(0, 0, w, h);
+
+      // 3. Draw moving bubbles
+      bgCtx.beginPath();
+      BUBBLES.forEach(b => {
+        b.y -= b.s; b.x += b.dx;
+        if (b.y < -20) { b.y = h + 20; b.x = Math.random() * w; }
+        // For performance, manually draw circles without individual beginPath/stroke calls
+        bgCtx.moveTo(b.x + b.r, b.y);
+        bgCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      });
+      bgCtx.strokeStyle = 'rgba(0,200,255,0.2)';
+      bgCtx.lineWidth = 1;
+      bgCtx.stroke();
+
+      requestAnimationFrame(animBg);
+    }
+    animBg();
+
+
+    // ── Touch support for mobile ────────────────────────────
+    document.getElementById('spinBtn').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleSpinBtn();
+    }, { passive: false });
+
+    // ── Keyboard controls ────────────────────────────────────
+    // SPACE = SPIN / STOP  (bonus: FREE SPIN)
+    document.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        // Bonus mode: SPIN / STOP
+        if (bonusActive) {
+          const btn = document.getElementById('bonusSpinBtn');
+          if (!btn.disabled) handleBonusBtn();
+          return;
+        }
+        handleSpinBtn();
+      }
+    });
+
+    // ── Init ─────────────────────────────────────────────────
+    initDom();
+  </script>
+</body>
+
+</html>
+>>>>>>> 6d10029d0ec3ec4ae5f94b38c8c1b10a9b17690c
