@@ -222,17 +222,16 @@ export default function App() {
   const doMainSpin = useCallback(() => {
     const s = stateRef.current;
     if (s.isSpinning) return;
-    if (s.freeSpin === 0 && s.coins < s.bet) {
+    if (s.coins < s.bet) {
       dispatch({ type: 'SET_MESSAGE', message: 'コイン不足です' });
       return;
     }
 
     audio.unlock();
     audio.spin();
-    const free = s.freeSpin > 0;
-    dispatch({ type: 'SPIN_START', free });
+    dispatch({ type: 'SPIN_START', free: false });
     dispatch({ type: 'SET_MESSAGE', message: '' });
-    setChar(free ? 'フリースピン！' : rnd(['行くぞ！', '当たれ〜！', 'ドキドキ...']));
+    setChar(rnd(['行くぞ！', '当たれ〜！', 'ドキドキ...']));
     runningRef.current = [true, true, true];
     mainSnapRef.current = null;
   }, [audio, dispatch, setChar]);
