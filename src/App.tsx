@@ -6,7 +6,7 @@ import { InfoBar } from './components/InfoBar';
 import { Overlays } from './components/Overlays';
 import { PaySymbol } from './components/PaySymbol';
 import { ReelFrame } from './components/ReelFrame';
-import { useAudio } from './hooks/useAudio';
+import { useAudio, type NormalBgmId } from './hooks/useAudio';
 import { useGameState } from './hooks/useGameState';
 import { useKeyboard } from './hooks/useKeyboard';
 import styles from './styles/App.module.css';
@@ -84,6 +84,9 @@ export default function App() {
   const [pressedReel, setPressedReel] = useState<number | null>(null);
   const [profileReady, setProfileReady] = useState(false);
   const [specialFx, setSpecialFx] = useState<SpecialFxState | null>(null);
+  const [normalBgm, setNormalBgm] = useState<NormalBgmId>('abyss');
+  const [musicOpen, setMusicOpen] = useState(false);
+  const [musicMuted, setMusicMuted] = useState(false);
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -100,6 +103,28 @@ export default function App() {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    return () => {
+      audio.stopBgm();
+    };
+  }, [audio]);
+
+  useEffect(() => {
+    if (musicMuted) return;
+    audio.startNormalBgm(normalBgm);
+  }, [audio, musicMuted, normalBgm]);
+
+  const prevBonusActiveRef = useRef(false);
+  useEffect(() => {
+    const prev = prevBonusActiveRef.current;
+    const now = state.bonusActive;
+    if (!musicMuted) {
+      if (!prev && now) audio.playBonusBgm();
+      if (prev && !now) audio.resumeNormalBgm();
+    }
+    prevBonusActiveRef.current = now;
+  }, [audio, musicMuted, state.bonusActive]);
 
   useEffect(() => {
     void initSymbolCache(true).then((cache) => setSymbols(cache));
@@ -508,6 +533,22 @@ export default function App() {
     dispatch({ type: 'SHOW_JACKPOT', value: false });
   }, [dispatch]);
 
+  const chooseNormalBgm = useCallback((id: NormalBgmId) => {
+    audio.unlock();
+    setNormalBgm(id);
+    setMusicMuted(false);
+    setMusicOpen(false);
+    if (!stateRef.current.bonusActive) {
+      audio.startNormalBgm(id);
+    }
+  }, [audio]);
+
+  const muteBgm = useCallback(() => {
+    audio.stopBgm();
+    setMusicMuted(true);
+    setMusicOpen(false);
+  }, [audio]);
+
   if (symbols.length < 10) {
     return <div className={styles.app}><div className={styles.wrap}><div className={styles.title}>Loading...</div></div></div>;
   }
@@ -566,8 +607,26 @@ export default function App() {
             onSpin={state.bonusActive ? handleBonusAction : handleSpin}
             onMax={state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
             onRestart={restartFromZero}
+            onMusic={() => setMusicOpen((v) => !v)}
+            message={state.bonusActive ? (bonusMsg || state.message) : state.message}
           />
-          <div className={styles.msg}>{state.bonusActive ? (bonusMsg || state.message) : state.message}</div>
+          {musicOpen && (
+            <div className={styles.musicPopup}>
+              <div className={styles.musicTitle}>BGM SELECT</div>
+              <div className={styles.musicList}>
+                {audio.normalBgmPresets.map((p) => (
+                  <button
+                    key={p.id}
+                    className={`${styles.musicItem} ${!musicMuted && normalBgm === p.id ? styles.musicActive : ''}`}
+                    onClick={() => chooseNormalBgm(p.id)}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+                <button className={styles.musicMute} onClick={muteBgm}>MUTE</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <button className={styles.ptToggle} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>

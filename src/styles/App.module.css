@@ -227,6 +227,14 @@
 .betRow, .actionRow { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; }
 .betLabel { font-size: 8px; color: #8fdfff; }
 .linesVal { font-size: 8px; color: var(--gold); }
+.leftActionWrap {
+  position: relative;
+  width: 88px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .betBtn, .maxBtn, .spinBtn, .ptToggle, .bonusBtn, .bonusExit, .jpClose {
   border: 1px solid var(--accent);
   background: #021324;
@@ -242,9 +250,27 @@
 .betBtn.on { background: #03304f; color: #fff; }
 .maxBtn { color: var(--gold); }
 .actionRow { gap: 8px; }
+.actionRow { margin-bottom: 24px; }
 .maxBtn {
   min-width: 88px;
   height: 46px;
+}
+.musicBtn {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  width: 56px;
+  height: 30px;
+  border: 1px solid rgba(0, 229, 255, 0.62);
+  background: #03182d;
+  color: #baf3ff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  border-radius: 5px;
+  padding: 0;
+  line-height: 1;
+  box-shadow: 0 2px 0 #02283d, 0 0 6px rgba(0, 229, 255, 0.2);
 }
 .spinBtn {
   min-width: 212px;
@@ -263,9 +289,78 @@
 .spinBtn:active {
   box-shadow: 0 1px 0 #184d1f, 0 0 6px rgba(0, 255, 136, 0.18);
 }
+.musicBtn:active {
+  transform: translateX(-50%) translateY(1px) scale(0.99);
+}
 .keyHint { font-size: 8px; color: #9ac6d3; margin-top: 8px; }
 
 .msg { min-height: 19px; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 2px; color: var(--gold); line-height: 1.4; }
+.belowRow {
+  display: grid;
+  grid-template-columns: 88px 212px;
+  column-gap: 10px;
+  justify-content: center;
+  margin-top: -16px;
+  align-items: end;
+}
+.musicSpacer {
+  width: 88px;
+  height: 30px;
+}
+.hintMsgCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 30px;
+  width: 212px;
+}
+.keyHint { margin-top: 0; line-height: 1; }
+.ctrlMsg {
+  min-height: 10px;
+  font-size: 9px;
+  color: var(--gold);
+  line-height: 1;
+  text-align: center;
+}
+
+.musicPopup {
+  margin-top: 8px;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(1, 10, 18, 0.9);
+}
+.musicTitle {
+  font-size: 8px;
+  color: #99d5e5;
+  margin-bottom: 6px;
+}
+.musicList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.musicItem, .musicMute {
+  border: 1px solid rgba(0, 229, 255, 0.52);
+  background: #03182d;
+  color: #c9f8ff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  border-radius: 6px;
+  padding: 7px 8px;
+  box-shadow: 0 2px 0 #02283d, 0 0 8px rgba(0, 229, 255, 0.15);
+}
+.musicActive {
+  color: #ffe55a;
+  border-color: rgba(255, 235, 120, 0.75);
+  box-shadow: 0 2px 0 #3f3a12, 0 0 10px rgba(255, 235, 120, 0.32);
+}
+.musicMute {
+  color: #ffd0d0;
+  border-color: rgba(255, 120, 120, 0.6);
+}
 
 .ptToggle { margin-top: 10px; width: 100%; }
 .payTable {
@@ -483,6 +578,12 @@
   .mark { width: 20px; height: 20px; font-size: 10px; }
   .maxBtn { min-width: 82px; height: 44px; }
   .spinBtn { min-width: 180px; height: 52px; font-size: 14px; }
+  .belowRow {
+    grid-template-columns: 82px 180px;
+  }
+  .hintMsgCol {
+    width: 180px;
+  }
   .bonusBtn { min-width: 182px; height: 48px; font-size: 13px; }
   .ptRow { grid-template-columns: 30px 1.2fr 1.6fr; }
   .bonusOverlay { padding-top: 16px; }

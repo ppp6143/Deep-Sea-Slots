@@ -10,9 +10,11 @@ interface Props {
   onSpin: () => void;
   onMax: () => void;
   onRestart: () => void;
+  onMusic: () => void;
+  message: string;
 }
 
-export function Controls({ bet, linesCount, stopState, bonusActive, showRestart, onBet, onSpin, onMax, onRestart }: Props) {
+export function Controls({ bet, linesCount, stopState, bonusActive, showRestart, onBet, onSpin, onMax, onRestart, onMusic, message }: Props) {
   const spinLabel = stopState === 0 ? (bonusActive ? 'FREE SPIN!' : 'SPIN') : `STOP  ${['左', '中', '右'][stopState - 1] ?? ''}`;
   const maxLabel = bonusActive ? 'ボーナス終了' : showRestart ? 'RESTART' : 'MAX';
   const onLeftAction = bonusActive ? onMax : showRestart ? onRestart : onMax;
@@ -27,10 +29,19 @@ export function Controls({ bet, linesCount, stopState, bonusActive, showRestart,
         <span className={styles.linesVal}>{linesCount}</span>
       </div>
         <div className={styles.actionRow}>
-          <button className={styles.maxBtn} onPointerDown={(e) => { e.preventDefault(); onLeftAction(); }}>{maxLabel}</button>
+          <div className={styles.leftActionWrap}>
+            <button className={styles.maxBtn} onPointerDown={(e) => { e.preventDefault(); onLeftAction(); }}>{maxLabel}</button>
+            <button className={styles.musicBtn} onPointerDown={(e) => { e.preventDefault(); onMusic(); }}>♪</button>
+          </div>
           <button className={styles.spinBtn} onPointerDown={(e) => { e.preventDefault(); onSpin(); }}>{spinLabel}</button>
         </div>
-      <div className={styles.keyHint}>[ SPACE ] SPIN / STOP</div>
+      <div className={styles.belowRow}>
+        <div className={styles.musicSpacer} />
+        <div className={styles.hintMsgCol}>
+          <div className={styles.keyHint}>[ SPACE ] SPIN / STOP</div>
+          <div className={styles.ctrlMsg}>{message}</div>
+        </div>
+      </div>
     </div>
   );
 }
