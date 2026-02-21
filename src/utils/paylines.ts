@@ -1,0 +1,52 @@
+﻿import type { EvalResult, WinLine } from '../types/game';
+import { SYMS } from './symbols';
+
+export const LINES: number[][] = [
+  [1, 1, 1],
+  [0, 0, 0],
+  [2, 2, 2],
+  [0, 1, 2],
+  [2, 1, 0],
+];
+
+export function activeLines(bet: 1 | 2 | 3): number[][] {
+  if (bet === 1) return [LINES[0]];
+  if (bet === 2) return LINES.slice(0, 3);
+  return LINES;
+}
+
+export function evalLines(grid: number[][], lines: number[][], bet: 1 | 2 | 3): EvalResult {
+  let total = 0;
+  const wins: WinLine[] = [];
+
+  lines.forEach((line) => {
+    const s0 = grid[0][line[0]];
+    const s1 = grid[1][line[1]];
+    const s2 = grid[2][line[2]];
+
+    if (s0 === s1 && s1 === s2) {
+      const pay = SYMS[s0].pay3 * bet;
+      total += pay;
+      wins.push({ line, syms: [s0, s1, s2], pay, count: 3 });
+    } else if (s0 === s1 && SYMS[s0].pay2 > 0) {
+      const pay = SYMS[s0].pay2 * bet;
+      total += pay;
+      wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
+    }
+  });
+
+  return { total, wins };
+}
+
+export function isJackpot(wins: WinLine[]): boolean {
+  return wins.some((w) => w.syms[0] === 0 && w.count === 3);
+}
+
+export function isBonus(grid: number[][], lines: number[][], bonusSym: number): boolean {
+  return lines.some((line) => {
+    const s0 = grid[0][line[0]];
+    const s1 = grid[1][line[1]];
+    const s2 = grid[2][line[2]];
+    return s0 === bonusSym && s1 === bonusSym && s2 === bonusSym;
+  });
+}

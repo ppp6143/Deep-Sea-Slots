@@ -1,0 +1,14 @@
+﻿:root {
+  --bg: #020b18;
+  --accent: #00e5ff;
+  --accent2: #00ff88;
+  --gold: #ffd700;
+  --red: #ff4444;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: 'Press Start 2P', monospace;
+}
