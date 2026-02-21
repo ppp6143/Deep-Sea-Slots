@@ -728,6 +728,7 @@
         border-color: var(--accent2);
       }
     }
+      .reel-strip, .bonus-reel-strip { will-change: transform; }
   </style>
 </head>
 
@@ -901,18 +902,36 @@
       const F = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x * S, y * S, w * S, h * S); };
 
       const draws = [
-        // 0: T-Rex (gold legendary)
+        // 0: Blue Whale (legendary - deep blue/teal)
         () => {
-          F(9, 1, 5, 4, '#8B4513'); F(11, 5, 4, 2, '#8B4513'); // head+jaw
-          F(4, 4, 7, 4, '#8B4513'); F(3, 8, 9, 4, '#8B4513'); F(5, 12, 5, 2, '#8B4513'); // body
-          F(1, 9, 3, 2, '#6B3010'); F(0, 11, 2, 2, '#6B3010'); // tail
-          F(6, 14, 2, 2, '#6B3010'); F(9, 14, 2, 2, '#6B3010'); // legs
-          F(11, 7, 2, 1, '#6B3010'); // arm
-          F(10, 2, 2, 1, '#CD853F'); F(5, 4, 2, 1, '#CD853F'); // highlights
-          F(11, 3, 1, 1, '#000'); F(13, 3, 1, 1, '#FFD700'); // eye
-          F(12, 7, 1, 1, '#fff'); F(14, 7, 1, 1, '#fff'); // teeth
+          // massive body
+          F(1, 5, 14, 6, '#1A5A8A'); F(0, 6, 16, 4, '#1E6699');
+          F(2, 4, 12, 2, '#1A5A8A'); F(3, 10, 10, 2, '#1A5A8A');
+          // belly (lighter)
+          F(3, 7, 9, 3, '#4A9AC4'); F(4, 6, 7, 1, '#5AAAD4');
+          // tail flukes
+          F(0, 4, 3, 2, '#0F4A7A'); F(0, 9, 3, 2, '#0F4A7A');
+          F(0, 3, 2, 1, '#0A3A6A'); F(0, 11, 2, 1, '#0A3A6A');
+          // pectoral fins
+          F(4, 10, 4, 3, '#0F4A7A'); F(4, 11, 5, 2, '#0F4A7A');
+          // head shape
+          F(12, 5, 4, 6, '#1A5A8A'); F(13, 4, 3, 7, '#1E6699');
+          F(14, 6, 2, 4, '#1A5A8A');
+          // mouth line
+          F(12, 9, 4, 1, '#0A3060'); F(13, 8, 3, 1, '#4A9AC4');
+          // baleen plates hint
+          F(13, 9, 1, 1, '#2A7AAA'); F(14, 9, 1, 1, '#2A7AAA');
+          // eye
+          F(12, 6, 2, 2, '#000'); F(13, 6, 1, 1, '#fff');
+          // blowhole spout
+          F(10, 0, 2, 3, '#AAEEFF'); F(9, 0, 1, 2, '#88DDFF');
+          F(11, 0, 1, 2, '#88DDFF'); F(9, 1, 1, 1, '#CCFFFF');
+          F(11, 1, 1, 1, '#CCFFFF');
+          // highlight stripe
+          F(4, 5, 6, 1, '#5AAAD4'); F(6, 4, 4, 1, '#4A9AC4');
+          // gold legendary glow
           ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
-          ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 10;
+          ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
           ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
         },
         // 1: Great White Shark (cyan rare)
@@ -942,17 +961,34 @@
           ctx.shadowColor = '#CC44FF'; ctx.shadowBlur = 6;
           ctx.strokeRect(2, 2, 60, 60); ctx.shadowBlur = 0;
         },
-        // 3: Lion (orange)
+        // 3: Sea Turtle (green)
         () => {
-          F(2, 3, 12, 9, '#C67C00'); F(1, 5, 14, 7, '#C67C00'); // mane
-          F(4, 4, 8, 7, '#E8A832'); F(3, 6, 10, 5, '#E8A832'); // face
-          F(4, 2, 2, 2, '#E8A832'); F(10, 2, 2, 2, '#E8A832'); // ears
-          F(6, 5, 2, 2, '#4A2500'); F(9, 5, 2, 2, '#4A2500'); // eyes
-          F(6, 5, 1, 1, '#FFE066'); F(9, 5, 1, 1, '#FFE066'); // eye shine
-          F(8, 8, 1, 1, '#C86464'); // nose
-          F(7, 9, 3, 1, '#C86464'); F(7, 10, 1, 1, '#C86464'); F(9, 10, 1, 1, '#C86464'); // mouth
-          F(3, 8, 3, 1, '#C67C00'); F(10, 8, 3, 1, '#C67C00'); // whiskers
-          F(5, 11, 6, 4, '#E8A832'); // body
+          // shell (carapace) - hexagonal pattern
+          F(4, 3, 8, 9, '#2D6A2D'); F(3, 5, 10, 7, '#2D6A2D');
+          F(5, 2, 6, 1, '#2D6A2D'); F(5, 11, 6, 1, '#2D6A2D');
+          // shell plates pattern
+          F(5, 4, 2, 3, '#3A8A3A'); F(8, 4, 2, 3, '#3A8A3A');
+          F(6, 7, 4, 2, '#3A8A3A'); F(5, 4, 6, 1, '#4AA04A');
+          F(6, 3, 4, 1, '#4AA04A');
+          // shell highlight
+          F(5, 3, 3, 2, '#5ABB5A'); F(6, 3, 2, 1, '#6ACC6A');
+          // shell ridges
+          F(7, 4, 1, 7, '#1E4A1E'); F(5, 6, 6, 1, '#1E4A1E');
+          F(5, 8, 6, 1, '#1E4A1E');
+          // head
+          F(11, 5, 3, 3, '#4A7A2A'); F(12, 4, 2, 5, '#4A7A2A');
+          F(13, 5, 2, 3, '#3A6A1A');
+          // eye
+          F(12, 5, 1, 1, '#000'); F(13, 5, 1, 1, '#88CC44');
+          // mouth hint
+          F(13, 7, 2, 1, '#2A5A1A');
+          // flippers x4
+          F(1, 4, 3, 3, '#3A6A1A'); F(1, 3, 2, 2, '#4A7A2A'); // front left
+          F(1, 8, 3, 3, '#3A6A1A'); F(1, 9, 2, 2, '#4A7A2A'); // rear left
+          F(12, 3, 3, 3, '#3A6A1A'); // front right (behind head)
+          F(12, 9, 3, 3, '#3A6A1A'); // rear right
+          // tail
+          F(3, 6, 2, 2, '#2D6A2D');
         },
         // 4: Clownfish (red-orange)
         () => {
@@ -1060,10 +1096,10 @@
 
     // ── Symbol data ─────────────────────────────────────────
     const SYMS = [
-      { name: 'ティラノサウルス', pay2: 50, pay3: 500, weight: 3 },
+      { name: 'シロナガスクジラ', pay2: 50, pay3: 500, weight: 3 },
       { name: 'ホオジロザメ', pay2: 30, pay3: 200, weight: 8 },
       { name: 'タコ', pay2: 15, pay3: 80, weight: 14 },
-      { name: 'ライオン', pay2: 15, pay3: 70, weight: 14 },
+      { name: 'ウミガメ', pay2: 15, pay3: 70, weight: 14 },
       { name: 'クマノミ', pay2: 8, pay3: 30, weight: 24 },
       { name: 'コンク貝', pay2: 6, pay3: 20, weight: 28 },
       { name: 'コーラル', pay2: 4, pay3: 12, weight: 36 },
@@ -1133,7 +1169,9 @@
         const cv = document.createElement('canvas');
         cv.width = 64; cv.height = 64;
         const symIdx = stripData[i % stripData.length];
-        drawSym(cv.getContext('2d'), symIdx);
+        const _c = symCvs[symIdx];
+        if (_c) { cv.getContext('2d').drawImage(_c, 0, 0); }
+        else { drawSym(cv.getContext('2d'), symIdx); }
         div.appendChild(cv);
         el.appendChild(div);
       }
@@ -1150,29 +1188,47 @@
     }
 
     // Render reels at current positions
-    // Uses drawSym directly to avoid drawImage failures on offscreen canvases
+    // Performance-optimised display:
+    // - Uses symCvs cache (drawImage) instead of drawSym every frame
+    // - Tracks last-drawn symbol per cell to skip redundant redraws
+    // - Moves strip via CSS transform only (no per-cell layout thrash)
+    const cellLastSym = {}; // key: "pfx_r_i" -> last symIdx drawn
+
     function refreshDisplay(isBonus) {
-      const pos = isBonus ? bPos : rPos;
+      const pos    = isBonus ? bPos : rPos;
       const strips = isBonus ? BSTRIPS : STRIPS;
-      const pfx = isBonus ? 'brs' : 'rs';
+      const pfx    = isBonus ? 'brs' : 'rs';
       const cellClass = isBonus ? '.bonus-reel-cell' : '.reel-cell';
 
       for (let r = 0; r < 3; r++) {
         const stripEl = document.getElementById(`${pfx}${r}`);
         if (!stripEl) continue;
         const strip = strips[r];
-        const L = strip.length;
+        const L     = strip.length;
         const cells = stripEl.querySelectorAll(cellClass);
         const topIdx = ((Math.floor(pos[r]) % L) + L) % L;
 
         cells.forEach((cell, i) => {
           const symIdx = strip[(topIdx + i) % L];
+          const key    = `${pfx}_${r}_${i}`;
+          // Only redraw if symbol changed
+          if (cellLastSym[key] === symIdx) return;
+          cellLastSym[key] = symIdx;
           const cv = cell.querySelector('canvas');
           if (!cv) return;
-          drawSym(cv.getContext('2d'), symIdx);
+          // Use pre-rendered cache - much faster than drawSym
+          const cached = symCvs[symIdx];
+          if (cached) {
+            const ctx = cv.getContext('2d');
+            ctx.clearRect(0, 0, 64, 64);
+            ctx.drawImage(cached, 0, 0);
+          } else {
+            // Fallback: draw directly (only if cache not ready)
+            drawSym(cv.getContext('2d'), symIdx);
+          }
         });
 
-        // fractional offset scrolls the strip smoothly
+        // Scroll via transform (GPU composited, no layout thrash)
         const frac = pos[r] - Math.floor(pos[r]);
         stripEl.style.transform = `translateY(${-frac * CELL_H}px)`;
       }
@@ -1525,9 +1581,9 @@
     // ── Jackpot ──────────────────────────────────────────────
     function showJackpot(amount) {
       sfxJackpot();
-      document.getElementById('jpSub').textContent = `恐竜3体！！ +${amount} コイン！！`;
+      document.getElementById('jpSub').textContent = `クジラ3体！！ +${amount} コイン！！`;
       document.getElementById('jpOverlay').classList.add('on');
-      charSay('🦕🦕🦕 ジャックポット！！！', 'excited');
+      charSay('🐋🐋🐋 ジャックポット！！！', 'excited');
       spawnJPParticles();
     }
     function closeJP() {
@@ -1726,7 +1782,8 @@
     window.addEventListener('resize', resizeWinCvs);
 
     function spawnParticles(amount) {
-      const n = Math.min(80, 12 + (amount / 4 | 0));
+      const isMobile = window.innerWidth < 600;
+      const n = Math.min(isMobile ? 30 : 80, 12 + (amount / 4 | 0));
       const cx = winCvs.width / 2, cy = winCvs.height / 2;
       const colors = ['#FFD700', '#FFEA00', '#FFAA00', '#00E5FF'];
       for (let i = 0; i < n; i++) {
@@ -1944,6 +2001,12 @@
     }
     animBg();
 
+
+    // ── Touch support for mobile ────────────────────────────
+    document.getElementById('spinBtn').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleSpinBtn();
+    }, { passive: false });
 
     // ── Keyboard controls ────────────────────────────────────
     // SPACE = SPIN / STOP  (bonus: FREE SPIN)
