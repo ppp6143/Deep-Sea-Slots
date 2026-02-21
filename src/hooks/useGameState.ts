@@ -13,6 +13,7 @@ const initialState: GameState = {
   bonusActive: false,
   bonusFree: 0,
   bonusWon: 0,
+  bonusPointMult: 2,
   bonusStopState: 0,
   bonusSnapping: false,
   message: 'コインを賭けてSPINを押そう！',
@@ -40,7 +41,6 @@ function reducer(state: GameState, action: GameAction): GameState {
         reachOn: false,
         win: 0,
         coins: action.free ? state.coins : state.coins - state.bet,
-        freeSpin: action.free ? Math.max(0, state.freeSpin - 1) : state.freeSpin,
       };
     case 'SET_STOP_STATE':
       return { ...state, stopState: action.value };
@@ -61,9 +61,11 @@ function reducer(state: GameState, action: GameAction): GameState {
     case 'BONUS_START':
       return {
         ...state,
+        freeSpin: state.freeSpin + 1,
         bonusActive: true,
         bonusFree: 8,
         bonusWon: 0,
+        bonusPointMult: action.pointMult,
         bonusStopState: 0,
         bonusSnapping: false,
       };

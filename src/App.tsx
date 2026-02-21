@@ -11,9 +11,9 @@ import { useGameState } from './hooks/useGameState';
 import { useKeyboard } from './hooks/useKeyboard';
 import styles from './styles/App.module.css';
 import type { Particle } from './types/game';
-import { activeLines, evalLines, isBonus, isJackpot, LINES } from './utils/paylines';
+import { activeLines, bonusTriggerLevel, evalLines, isJackpot, LINES } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
-import { BONUS_SYM, makeReelSet, SYMS } from './utils/symbols';
+import { BONUS_SYM, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
 
 interface SnapState {
   active: boolean;
@@ -109,14 +109,15 @@ export default function App() {
     mainSnapRef.current = null;
   }, [dispatch]);
 
-  const startBonus = useCallback(() => {
-    dispatch({ type: 'BONUS_START' });
+  const startBonus = useCallback((level: 2 | 3 = 2) => {
+    const pointMult = level === 3 ? 4 : 2;
+    dispatch({ type: 'BONUS_START', pointMult });
     bonusPosRef.current = [0, 0, 0];
     bonusRunningRef.current = [false, false, false];
     bonusSnapRef.current = null;
     setBonusMsg('');
     audio.bonus();
-    setChar('ダイオウイカ3体！\nボーナス発動！！', 'excited');
+    setChar(level === 3 ? 'ダイオウイカ3体！\nポイント2倍ボーナス！' : 'ダイオウイカ2体！\nボーナス発動！！', 'excited');
   }, [audio, dispatch, setChar]);
 
   const finishMainSpin = useCallback(() => {
@@ -125,7 +126,7 @@ export default function App() {
     const grid = getGrid(mainPosRef.current, stripsRef.current);
     const { total, wins } = evalLines(grid, lines, s.bet);
     const jp = isJackpot(wins);
-    const bonus = isBonus(grid, lines, BONUS_SYM);
+    const bonusLevel = bonusTriggerLevel(grid, lines, BONUS_SYM);
 
     if (total > 0) {
       const nextCombo = s.combo + 1;
@@ -147,8 +148,9 @@ export default function App() {
       dispatch({ type: 'SET_CHAR', mood: 'sad', text: rnd(['うぅ...', 'ドンマイ！', '次こそ！']) });
     }
 
-    if (bonus) {
-      setTimeout(startBonus, 500);
+    if (bonusLevel >= 2) {
+      const lv: 2 | 3 = bonusLevel === 3 ? 3 : 2;
+      setTimeout(() => startBonus(lv), 500);
     }
     cleanupMainSpin();
   }, [audio, cleanupMainSpin, dispatch, spawnParticles, startBonus]);
@@ -204,13 +206,13 @@ export default function App() {
     const s = stateRef.current;
     const grid = getGrid(bonusPosRef.current, bonusStripsRef.current);
     const { total } = evalLines(grid, LINES, s.bet);
-    const won = total > 0 ? total * 2 : 0;
-    dispatch({ type: 'BONUS_SPIN_FINISH', won });
-    if (won > 0) {
-      setBonusMsg(`+${won} コイン！ (2倍)`);
-      audio.win(total);
-      setChar(`+${won} コイン！`, 'excited');
-      spawnParticles(won);
+      const won = total > 0 ? total * s.bonusPointMult : 0;
+      dispatch({ type: 'BONUS_SPIN_FINISH', won });
+      if (won > 0) {
+        setBonusMsg(`+${won} コイン！ (${s.bonusPointMult}倍)`);
+        audio.win(total);
+        setChar(`+${won} コイン！`, 'excited');
+        spawnParticles(won);
     } else {
       setBonusMsg('はずれ...');
     }
@@ -411,13 +413,15 @@ export default function App() {
         <button className={styles.ptToggle} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>
         <div className={`${styles.payTable} ${ptOpen ? styles.open : ''}`}>
           <div className={styles.ptTitle}>🐠 PAY TABLE 🐠</div>
-          {SYMS.map((s, i) => (
-            <div key={s.name} className={styles.ptRow}>
-              <span className={styles.ptSym}><PaySymbol source={symbols[i]} /></span>
+          {PAYTABLE_ORDER.map((id) => {
+            const s = SYMS[id];
+            return (
+            <div key={`${s.name}-${id}`} className={styles.ptRow}>
+              <span className={styles.ptSym}><PaySymbol source={symbols[id]} /></span>
               <span>{s.name}</span>
-              <span className={styles.ptPay}>{i === 9 ? 'BONUS発動！' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
+              <span className={styles.ptPay}>{id === 9 ? '2x:BONUS / 3x:4倍BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
             </div>
-          ))}
+          )})}
         </div>
 
         <CharacterPanel text={state.charText} mood={state.charMood} />

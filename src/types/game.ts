@@ -53,6 +53,7 @@ export interface GameState {
   bonusActive: boolean;
   bonusFree: number;
   bonusWon: number;
+  bonusPointMult: number;
   bonusStopState: StopState;
   bonusSnapping: boolean;
   message: string;
@@ -76,7 +77,7 @@ export type GameAction =
   | { type: 'SPIN_LOSE' }
   | { type: 'SHOW_JACKPOT'; value: boolean }
   | { type: 'SET_FREE'; value: number }
-  | { type: 'BONUS_START' }
+  | { type: 'BONUS_START'; pointMult: number }
   | { type: 'BONUS_SPIN_START' }
   | { type: 'BONUS_STOP_STATE'; value: StopState }
   | { type: 'BONUS_SNAPPING'; value: boolean }

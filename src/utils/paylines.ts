@@ -50,3 +50,20 @@ export function isBonus(grid: number[][], lines: number[][], bonusSym: number): 
     return s0 === bonusSym && s1 === bonusSym && s2 === bonusSym;
   });
 }
+
+export function bonusTriggerLevel(grid: number[][], lines: number[][], bonusSym: number): 0 | 2 | 3 {
+  let level: 0 | 2 | 3 = 0;
+  lines.forEach((line) => {
+    const s0 = grid[0][line[0]];
+    const s1 = grid[1][line[1]];
+    const s2 = grid[2][line[2]];
+    if (s0 === bonusSym && s1 === bonusSym) {
+      if (s2 === bonusSym) {
+        level = 3;
+      } else if (level < 2) {
+        level = 2;
+      }
+    }
+  });
+  return level;
+}
