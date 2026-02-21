@@ -1,5 +1,4 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react';
-import { BonusScreen } from './components/BonusScreen';
 import { CharacterPanel } from './components/CharacterPanel';
 import { Controls } from './components/Controls';
 import { GameCanvas } from './components/GameCanvas';
@@ -47,9 +46,9 @@ function getGrid(pos: [number, number, number], strips: [number[], number[], num
 }
 
 function comboMult(combo: number): number {
-  if (combo >= 5) return 4;
-  if (combo >= 3) return 2;
-  if (combo >= 2) return 1.5;
+  if (combo >= 5) return 2.8;
+  if (combo >= 3) return 1.6;
+  if (combo >= 2) return 1.25;
   return 1;
 }
 
@@ -229,6 +228,8 @@ export default function App() {
     const snap = createSnap(bonusPosRef.current[r], target, L);
     snap.reel = r;
     bonusSnapRef.current = snap;
+    setPressedReel(r);
+    window.setTimeout(() => setPressedReel((v) => (v === r ? null : v)), 170);
     audio.coin();
   }, [audio, dispatch]);
 
@@ -363,38 +364,48 @@ export default function App() {
       <div className={styles.wrap}>
         <div className={styles.title}>⚓ DEEP SEA SLOTS ⚓</div>
         <div className={styles.machine}>
-          <InfoBar coins={state.coins} win={state.win} combo={state.combo} free={state.freeSpin} />
-          {!state.bonusActive && (
-            <div className={styles.reelsOuter}>
-              <div className={styles.reelStage}>
-                <GameCanvas
-                  runtime={{
-                    mainPos: mainPosRef,
-                    bonusPos: bonusPosRef,
-                    strips: stripsRef,
-                    bonusStrips: bonusStripsRef,
-                    particles: particlesRef,
-                  }}
-                  symbols={symbols}
-                  bonusActive={state.bonusActive}
-                  reachOn={state.reachOn}
-                  isSpinning={state.isSpinning}
-                  combo={state.combo}
-                  onFrame={onFrame}
-                />
-                <ReelFrame bet={state.bet} stopState={state.stopState} pressedReel={pressedReel} />
-              </div>
+          {state.bonusActive && <div className={styles.bonusFx} aria-hidden="true" />}
+          <InfoBar
+            coins={state.coins}
+            win={state.win}
+            combo={state.combo}
+            free={state.bonusActive ? state.bonusFree : state.freeSpin}
+            bonusActive={state.bonusActive}
+          />
+          <div className={styles.reelsOuter}>
+            <div className={styles.reelStage}>
+              <GameCanvas
+                runtime={{
+                  mainPos: mainPosRef,
+                  bonusPos: bonusPosRef,
+                  strips: stripsRef,
+                  bonusStrips: bonusStripsRef,
+                  particles: particlesRef,
+                }}
+                symbols={symbols}
+                bonusActive={state.bonusActive}
+                reachOn={state.reachOn}
+                isSpinning={state.isSpinning || state.bonusStopState > 0}
+                combo={state.combo}
+                onFrame={onFrame}
+              />
+              <ReelFrame
+                bet={state.bet}
+                stopState={state.bonusActive ? state.bonusStopState : state.stopState}
+                pressedReel={pressedReel}
+              />
             </div>
-          )}
+          </div>
           <Controls
             bet={state.bet}
             linesCount={state.linesCount}
-            stopState={state.stopState}
-            disabled={state.bonusActive}
+            stopState={state.bonusActive ? state.bonusStopState : state.stopState}
+            bonusActive={state.bonusActive}
             onBet={(bet) => dispatch({ type: 'SET_BET', bet })}
-            onSpin={handleSpin}
+            onSpin={state.bonusActive ? handleBonusAction : handleSpin}
+            onMax={state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
           />
-          <div className={styles.msg}>{state.message}</div>
+          <div className={styles.msg}>{state.bonusActive ? (bonusMsg || state.message) : state.message}</div>
         </div>
 
         <button className={styles.ptToggle} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>
@@ -413,35 +424,6 @@ export default function App() {
 
         <Overlays open={state.jackpotOn} onClose={closeJackpot} sub={`クジラ3揃い！ +${state.win} コイン`} />
 
-        <BonusScreen
-          open={state.bonusActive}
-          free={state.bonusFree}
-          total={state.bonusWon}
-          stopState={state.bonusStopState}
-          winMsg={bonusMsg}
-          onAction={handleBonusAction}
-          onEnd={endBonus}
-          reels={
-            <div className={styles.bonusReelsOuter}>
-              <GameCanvas
-                runtime={{
-                  mainPos: mainPosRef,
-                  bonusPos: bonusPosRef,
-                  strips: stripsRef,
-                  bonusStrips: bonusStripsRef,
-                  particles: particlesRef,
-                }}
-                symbols={symbols}
-                bonusActive={state.bonusActive}
-                reachOn={state.reachOn}
-                isSpinning
-                combo={state.combo}
-                onFrame={onFrame}
-                className={styles.bonusCanvas}
-              />
-            </div>
-          }
-        />
       </div>
     </div>
   );
