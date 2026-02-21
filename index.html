@@ -283,6 +283,7 @@
       transition: all 0.1s;
       flex: 1;
       max-width: 190px;
+      pointer-events: auto;
     }
 
     .spin-btn:hover:not(:disabled) {
@@ -647,6 +648,7 @@
       width: 100%;
       max-width: 280px;
       letter-spacing: 2px;
+      pointer-events: auto;
     }
 
     .bonus-spin-btn:hover:not(:disabled) {
@@ -749,7 +751,7 @@
         </div>
         <div class="action-row">
           <button class="max-btn" onclick="setBet(3)">MAX</button>
-          <button class="spin-btn" id="spinBtn" onclick="doSpin()">SPIN</button>
+          <button class="spin-btn" id="spinBtn" onclick="handleSpinBtn()">SPIN</button>
         </div>
         <div class="msg-area"><span id="msgTxt">コインを賭けてSPINを押そう！</span></div>
       </div>
@@ -1423,7 +1425,8 @@
         btn.classList.add('stop-mode');
         btn.classList.remove('going');
       } else {
-        btn.disabled = true;
+        // Keep enabled visually but input might be locked by isSnapping logic
+        btn.disabled = false;
         btn.classList.remove('stop-mode', 'going');
       }
     }
@@ -1650,12 +1653,15 @@
         }
         btn.disabled = false;
         btn.classList.remove('stop-mode', 'going');
-      } else {
+      } else if (bStopState >= 1 && bStopState <= 3) {
         const labels = ['左', '中', '右'];
         btn.textContent = `STOP  ${labels[bStopState - 1]}`;
         btn.disabled = false;
         btn.classList.add('stop-mode');
         btn.classList.remove('going');
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('stop-mode', 'going');
       }
     }
 
