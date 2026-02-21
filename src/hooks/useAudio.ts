@@ -4,6 +4,9 @@ export interface AudioApi {
   unlock: () => void;
   spin: () => void;
   win: (amount: number) => void;
+  topThreeHit: (symbolId: 0 | 1 | 8) => void;
+  squidTriple: () => void;
+  coinStream: (amount: number) => void;
   reach: () => void;
   jackpot: () => void;
   bonus: () => void;
@@ -52,6 +55,26 @@ export function useAudio(): AudioApi {
           setTimeout(() => [659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.18, 'square', 0.32, i * 0.08)), 500);
         } else {
           [440, 523, 659].forEach((f, i) => tone(f, 0.12, 'square', 0.22, i * 0.08));
+        }
+      },
+      topThreeHit: (symbolId: 0 | 1 | 8) => {
+        const melody = symbolId === 0
+          ? [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784]
+          : symbolId === 1
+            ? [392, 494, 587, 740, 988, 1175, 988, 740, 587]
+            : [440, 554, 659, 880, 988, 1319, 988, 880, 659];
+        melody.forEach((f, i) => tone(f, 0.22, 'triangle', 0.3, i * 0.13));
+      },
+      squidTriple: () => {
+        [185, 220, 277, 330, 415, 554, 740, 988].forEach((f, i) => tone(f, 0.2, 'sawtooth', 0.28, i * 0.1));
+        [740, 988, 1319].forEach((f, i) => tone(f, 0.28, 'square', 0.2, 0.95 + i * 0.08));
+      },
+      coinStream: (amount: number) => {
+        const hits = Math.max(6, Math.min(26, (amount / 8) | 0));
+        for (let i = 0; i < hits; i += 1) {
+          const d = i * 0.038;
+          tone(1175 + ((i % 3) * 120), 0.045, 'square', 0.1, d);
+          tone(1480 + ((i % 2) * 90), 0.03, 'triangle', 0.06, d + 0.02);
         }
       },
       reach: () => {

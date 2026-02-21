@@ -76,6 +76,41 @@
   100% { transform: translate3d(-20px, -24px, 0); }
 }
 
+.specialFx {
+  position: absolute;
+  left: 50%;
+  top: 108px;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 8px 12px;
+  font-size: 10px;
+  border-radius: 8px;
+  letter-spacing: 1px;
+  pointer-events: none;
+  animation: specialPop 1.8s ease-out forwards;
+}
+
+.specialTop3 {
+  color: #ffe566;
+  border: 1px solid rgba(255, 229, 102, 0.65);
+  background: rgba(53, 33, 7, 0.66);
+  box-shadow: 0 0 14px rgba(255, 216, 86, 0.45), inset 0 0 10px rgba(255, 249, 190, 0.22);
+}
+
+.specialSquid {
+  color: #ffd9f8;
+  border: 1px solid rgba(255, 140, 230, 0.72);
+  background: rgba(61, 11, 72, 0.7);
+  box-shadow: 0 0 16px rgba(255, 120, 220, 0.45), inset 0 0 12px rgba(255, 215, 247, 0.24);
+}
+
+@keyframes specialPop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.94); }
+  14% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-7px) scale(1.03); }
+}
+
 .infoBar {
   display: flex;
   gap: 6px;
@@ -94,6 +129,12 @@
 .infoLabel { font-size: 6px; color: rgba(0, 229, 255, 0.5); margin-bottom: 3px; letter-spacing: .4px; }
 .infoVal { font-size: 10px; line-height: 1.2; color: var(--gold); text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700; }
 .hot { color: var(--accent2); }
+.countUp { animation: countUpPulse 0.18s linear infinite alternate; }
+
+@keyframes countUpPulse {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1px); text-shadow: 0 0 12px #ffd700, 0 0 26px #ffea7a; }
+}
 
 .reelsOuter {
   background: transparent;
@@ -300,9 +341,36 @@
   color: #fff;
   padding: 16px;
 }
-.jpIcon { font-size: 56px; }
-.jpText { font-size: 28px; color: var(--gold); text-shadow: 0 0 18px #ffd700; margin: 8px 0; }
-.jpSub { font-size: 10px; margin-bottom: 16px; }
+.jpPanel {
+  width: min(94vw, 500px);
+  padding: 12px 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 226, 119, 0.65);
+  background: linear-gradient(180deg, rgba(9, 20, 35, 0.9), rgba(4, 11, 20, 0.95));
+  box-shadow: 0 0 24px rgba(255, 219, 106, 0.22), inset 0 0 30px rgba(255, 235, 150, 0.08);
+  overflow: hidden;
+}
+.jpWhale {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 0 auto 6px;
+  image-rendering: pixelated;
+}
+.jpText {
+  font-size: clamp(28px, 7vw, 48px);
+  color: #ffea54;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 0 14px #ffd700, 0 0 26px rgba(255, 235, 85, 0.9);
+  margin: 4px 0 5px;
+  line-height: 0.95;
+  white-space: nowrap;
+}
+.jpSub { font-size: 11px; margin-bottom: 8px; text-align: center; color: #dff9ff; }
+.jpHint { font-size: 8px; margin-bottom: 10px; text-align: center; color: rgba(173, 224, 255, 0.9); }
+.jpClose { display: block; margin: 0 auto; min-width: 120px; }
 
 .bonusTitle {
   font-size: 24px;

@@ -25,8 +25,14 @@ interface SnapState {
   duration: number;
 }
 
+interface SpecialFxState {
+  text: string;
+  kind: 'top3' | 'squid';
+}
+
 const MAIN_SPEEDS: [number, number, number] = [0.32, 0.3, 0.28];
 const BONUS_SPEEDS: [number, number, number] = [0.3, 0.28, 0.26];
+const TOP3_IDS = new Set([0, 1, 8]);
 
 function mod(v: number, m: number): number {
   return ((v % m) + m) % m;
@@ -45,6 +51,23 @@ function getGrid(pos: [number, number, number], strips: [number[], number[], num
   });
 }
 
+function findNearestTopForSymbol(strip: number[], pos: number, symbolId: number): number {
+  const L = strip.length;
+  const current = mod(Math.round(pos), L);
+  let best = current;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < L; i += 1) {
+    if (strip[(i + 1) % L] !== symbolId) continue;
+    const d = Math.abs(i - current);
+    const score = Math.min(d, L - d);
+    if (score < bestScore) {
+      bestScore = score;
+      best = i;
+    }
+  }
+  return best;
+}
+
 function comboMult(combo: number): number {
   if (combo >= 5) return 2.8;
   if (combo >= 3) return 1.6;
@@ -60,6 +83,7 @@ export default function App() {
   const [bonusMsg, setBonusMsg] = useState('');
   const [pressedReel, setPressedReel] = useState<number | null>(null);
   const [profileReady, setProfileReady] = useState(false);
+  const [specialFx, setSpecialFx] = useState<SpecialFxState | null>(null);
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -71,6 +95,7 @@ export default function App() {
   const mainSnapRef = useRef<SnapState | null>(null);
   const bonusSnapRef = useRef<SnapState | null>(null);
   const particlesRef = useRef<Particle[]>([]);
+  const forcedMainSymbolRef = useRef<number | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -168,6 +193,8 @@ export default function App() {
     const { total, wins } = evalLines(grid, lines, s.bet);
     const jp = isJackpot(wins);
     const bonusLevel = bonusTriggerLevel(grid, lines, BONUS_SYM);
+    const top3Win = wins.find((w) => w.count === 3 && TOP3_IDS.has(w.syms[0])) ?? null;
+    const isSquidTriple = bonusLevel === 3;
 
     if (total > 0) {
       const nextCombo = s.combo + 1;
@@ -177,22 +204,50 @@ export default function App() {
       dispatch({ type: 'SET_MESSAGE', message: `+${final} コイン！${mult > 1 ? ` (${mult}倍)` : ''}` });
       dispatch({ type: 'SET_CHAR', mood: 'excited', text: `コンボ ${nextCombo}連！ ${mult}倍！` });
       audio.win(final);
+      audio.coinStream(final);
       spawnParticles(final);
+
+      if (top3Win) {
+        const topId = top3Win.syms[0] as 0 | 1 | 8;
+        audio.topThreeHit(topId);
+        setSpecialFx({ kind: 'top3', text: topId === 0 ? 'WHALE LEGEND!!' : topId === 1 ? 'SHARK ATTACK!!' : 'ANGLER SHOCK!!' });
+        window.setTimeout(() => setSpecialFx(null), 1800);
+        spawnParticles(final + 80);
+      }
 
       if (jp) {
         dispatch({ type: 'SHOW_JACKPOT', value: true });
         audio.jackpot();
       }
+      if (isSquidTriple) {
+        audio.squidTriple();
+        setSpecialFx({ kind: 'squid', text: 'KRAKEN RUSH!! x4 BONUS' });
+        window.setTimeout(() => setSpecialFx(null), 1800);
+        spawnParticles(final + 120);
+      }
     } else {
       dispatch({ type: 'SPIN_LOSE' });
-      dispatch({ type: 'SET_MESSAGE', message: rnd(['はずれ...', '惜しい！', '次は来る！']) });
-      dispatch({ type: 'SET_CHAR', mood: 'sad', text: rnd(['うぅ...', 'ドンマイ！', '次こそ！']) });
+      if (bonusLevel > 0) {
+        const msg = bonusLevel === 3 ? 'ダイオウイカ3体！ 超ボーナス！' : 'ダイオウイカ2体！ ボーナス！';
+        dispatch({ type: 'SET_MESSAGE', message: msg });
+        dispatch({ type: 'SET_CHAR', mood: 'excited', text: msg });
+        if (bonusLevel === 3) {
+          audio.squidTriple();
+          setSpecialFx({ kind: 'squid', text: 'KRAKEN RUSH!! x4 BONUS' });
+          window.setTimeout(() => setSpecialFx(null), 1800);
+          spawnParticles(120);
+        }
+      } else {
+        dispatch({ type: 'SET_MESSAGE', message: rnd(['はずれ...', '惜しい！', '次は来る！']) });
+        dispatch({ type: 'SET_CHAR', mood: 'sad', text: rnd(['うぅ...', 'ドンマイ！', '次こそ！']) });
+      }
     }
 
     if (bonusLevel >= 2) {
       const lv: 2 | 3 = bonusLevel === 3 ? 3 : 2;
       setTimeout(() => startBonus(lv), 500);
     }
+    forcedMainSymbolRef.current = null;
     cleanupMainSpin();
   }, [audio, cleanupMainSpin, dispatch, spawnParticles, startBonus]);
 
@@ -210,7 +265,10 @@ export default function App() {
     runningRef.current[r] = false;
     dispatch({ type: 'SET_SNAPPING', value: true });
     const L = stripsRef.current[r].length;
-    const target = mod(Math.round(mainPosRef.current[r]), L);
+    const forced = forcedMainSymbolRef.current;
+    const target = forced == null
+      ? mod(Math.round(mainPosRef.current[r]), L)
+      : findNearestTopForSymbol(stripsRef.current[r], mainPosRef.current[r], forced);
     const snap = createSnap(mainPosRef.current[r], target, L);
     snap.reel = r;
     mainSnapRef.current = snap;
@@ -229,6 +287,7 @@ export default function App() {
 
     audio.unlock();
     audio.spin();
+    forcedMainSymbolRef.current = null;
     dispatch({ type: 'SPIN_START', free: false });
     dispatch({ type: 'SET_MESSAGE', message: '' });
     setChar(rnd(['行くぞ！', '当たれ〜！', 'ドキドキ...']));
@@ -315,25 +374,47 @@ export default function App() {
   }, [doBonusSpin, endBonus, stopNextBonus]);
 
   useKeyboard(() => {
+    if (stateRef.current.jackpotOn) {
+      dispatch({ type: 'SHOW_JACKPOT', value: false });
+      return;
+    }
     if (stateRef.current.bonusActive) handleBonusAction();
     else handleSpin();
   });
 
   useEffect(() => {
     const secret = 'pikurusu';
+    const forceMap: Record<string, number> = { sss1: 0, hhh1: 1, ttt1: 8, ddd1: 9 };
     let index = 0;
     let lastAt = 0;
+    let cmdBuffer = '';
     const maxGapMs = 1200;
     const onKey = (e: KeyboardEvent): void => {
       if (e.repeat) return;
       const now = Date.now();
       const key = e.key.toLowerCase();
-      if (key.length !== 1 || key < 'a' || key > 'z') {
+      if (key.length !== 1 || !/[a-z0-9]/.test(key)) {
         return;
       }
       if (now - lastAt > maxGapMs) index = 0;
       lastAt = now;
 
+      cmdBuffer = (cmdBuffer + key).slice(-4);
+      const forcedId = forceMap[cmdBuffer];
+      if (forcedId != null) {
+        const canForce = !stateRef.current.bonusActive && stateRef.current.isSpinning && stateRef.current.stopState === 1;
+        if (canForce) {
+          forcedMainSymbolRef.current = forcedId;
+          dispatch({ type: 'SET_MESSAGE', message: '隠しコマンド成功！ 強制揃え準備中...' });
+          setChar('シークレット発動！', 'excited');
+          audio.reach();
+        } else {
+          dispatch({ type: 'SET_MESSAGE', message: '隠しコマンドは回転開始直後に入力してね' });
+        }
+        cmdBuffer = '';
+      }
+
+      if (key < 'a' || key > 'z') return;
       if (key === secret[index]) {
         index += 1;
         if (index >= secret.length) {
@@ -349,7 +430,7 @@ export default function App() {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [startBonus]);
+  }, [audio, dispatch, setChar, startBonus]);
 
   const onFrame = useCallback((dt: number) => {
     const scale = dt / 16.666;
@@ -439,6 +520,11 @@ export default function App() {
         <div className={styles.title}>⚓ DEEP SEA SLOTS ⚓</div>
         <div className={styles.machine}>
           {state.bonusActive && <div className={styles.bonusFx} aria-hidden="true" />}
+          {specialFx && (
+            <div className={`${styles.specialFx} ${specialFx.kind === 'squid' ? styles.specialSquid : styles.specialTop3}`}>
+              {specialFx.text}
+            </div>
+          )}
           <InfoBar
             coins={state.coins}
             win={state.win}
