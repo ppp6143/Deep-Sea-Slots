@@ -9,7 +9,7 @@
 
 .wrap {
   width: 100%;
-  max-width: 560px;
+  max-width: 506px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@
 }
 .reelStage {
   position: relative;
-  width: min(100%, 456px);
+  width: min(100%, 402px);
   margin: 0 auto;
 }
 
