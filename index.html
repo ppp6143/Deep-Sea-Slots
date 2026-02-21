@@ -691,6 +691,43 @@
       cursor: pointer;
       border-radius: 4px;
     }
+
+    /* Mobile Performance Optimizations */
+    @media (max-width: 768px) {
+      :root {
+        --glow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+        /* Removed 40px glow */
+        --glow-gold: 0 0 10px #ffd700;
+        /* Removed 20px glow */
+      }
+
+      .title {
+        animation: none;
+        /* Disable expensive text-shadow pulse */
+        text-shadow: var(--glow);
+      }
+
+      .bonus-title {
+        animation: none;
+        text-shadow: 0 0 20px var(--purple);
+      }
+
+      .jackpot-text {
+        animation: none;
+      }
+
+      .info-val.hot {
+        animation: none;
+        /* Disable scale pulse */
+        color: var(--accent2);
+      }
+
+      .spin-btn.going,
+      .bonus-spin-btn.going {
+        animation: none;
+        border-color: var(--accent2);
+      }
+    }
   </style>
 </head>
 
@@ -1137,7 +1174,7 @@
 
         // fractional offset scrolls the strip smoothly
         const frac = pos[r] - Math.floor(pos[r]);
-        stripEl.style.top = `${-frac * CELL_H}px`;
+        stripEl.style.transform = `translateY(${-frac * CELL_H}px)`;
       }
     }
 
@@ -1836,34 +1873,73 @@
     const bgCvs = document.getElementById('bgCanvas');
     const bgCtx = bgCvs.getContext('2d');
 
-    function resizeBg() { bgCvs.width = innerWidth; bgCvs.height = innerHeight; }
+    // Create an offscreen canvas to cache the heavy static gradients
+    const bgCache = document.createElement('canvas');
+    const bgCacheCtx = bgCache.getContext('2d');
+
+    function resizeBg() {
+      // Handle high devicePixelRatio on mobile for crispness but limit it so it doesn't get exponentially heavy
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x resolution
+      const w = innerWidth;
+      const h = innerHeight;
+
+      // Setup main display canvas
+      bgCvs.width = w * dpr;
+      bgCvs.height = h * dpr;
+      bgCtx.scale(dpr, dpr);
+
+      // Setup cache canvas
+      bgCache.width = w * dpr;
+      bgCache.height = h * dpr;
+      bgCacheCtx.scale(dpr, dpr);
+
+      // Pre-draw the heavy static gradients ONCE to the cache
+      const g = bgCacheCtx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#010815'); g.addColorStop(0.5, '#020e20'); g.addColorStop(1, '#041628');
+      bgCacheCtx.fillStyle = g; bgCacheCtx.fillRect(0, 0, w, h);
+
+      // Draw the radial glows to cache (pseudo-static now, animated slightly by opacity)
+      for (let i = 0; i < 4; i++) {
+        const cx = w * (0.1 + i * 0.25);
+        const cy = h * 0.2;
+        const rg = bgCacheCtx.createRadialGradient(cx, cy, 0, cx, cy, 140);
+        rg.addColorStop(0, 'rgba(0,120,200,0.06)'); rg.addColorStop(1, 'transparent');
+        bgCacheCtx.fillStyle = rg; bgCacheCtx.fillRect(0, 0, w, h);
+      }
+    }
     resizeBg(); window.addEventListener('resize', resizeBg);
 
-    const BUBBLES = Array.from({ length: 28 }, () => ({
+    const BUBBLES = Array.from({ length: 24 }, () => ({
       x: Math.random() * innerWidth, y: innerHeight + Math.random() * 300,
-      r: 2 + Math.random() * 7, s: 0.25 + Math.random() * 0.7,
-      dx: (Math.random() - .5) * 0.25, a: 0.08 + Math.random() * 0.18,
+      r: 2 + Math.random() * 6, s: 0.25 + Math.random() * 0.7,
+      dx: (Math.random() - .5) * 0.25, a: 0.1 + Math.random() * 0.2,
     }));
 
     function animBg() {
-      const w = bgCvs.width, h = bgCvs.height;
-      const g = bgCtx.createLinearGradient(0, 0, 0, h);
-      g.addColorStop(0, '#010815'); g.addColorStop(0.5, '#020e20'); g.addColorStop(1, '#041628');
-      bgCtx.fillStyle = g; bgCtx.fillRect(0, 0, w, h);
+      const w = innerWidth, h = innerHeight;
+
+      // 1. Draw the pre-rendered static background (massive GPU saving!)
+      bgCtx.drawImage(bgCache, 0, 0, w, h);
+
+      // 2. Add subtle global pulsation by overlaying a very faint black box
       const t = Date.now() * 0.0004;
-      for (let i = 0; i < 4; i++) {
-        const cx = w * (0.1 + i * 0.25 + Math.sin(t + i) * 0.04);
-        const cy = h * (0.2 + Math.cos(t * .6 + i) * .08);
-        const rg = bgCtx.createRadialGradient(cx, cy, 0, cx, cy, 140);
-        rg.addColorStop(0, 'rgba(0,90,140,0.035)'); rg.addColorStop(1, 'transparent');
-        bgCtx.fillStyle = rg; bgCtx.fillRect(0, 0, w, h);
-      }
+      const pulse = Math.sin(t) * 0.015;
+      bgCtx.fillStyle = `rgba(0,0,0,${0.03 + pulse})`;
+      bgCtx.fillRect(0, 0, w, h);
+
+      // 3. Draw moving bubbles
+      bgCtx.beginPath();
       BUBBLES.forEach(b => {
         b.y -= b.s; b.x += b.dx;
         if (b.y < -20) { b.y = h + 20; b.x = Math.random() * w; }
-        bgCtx.beginPath(); bgCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        bgCtx.strokeStyle = `rgba(0,200,255,${b.a})`; bgCtx.lineWidth = 1; bgCtx.stroke();
+        // For performance, manually draw circles without individual beginPath/stroke calls
+        bgCtx.moveTo(b.x + b.r, b.y);
+        bgCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       });
+      bgCtx.strokeStyle = 'rgba(0,200,255,0.2)';
+      bgCtx.lineWidth = 1;
+      bgCtx.stroke();
+
       requestAnimationFrame(animBg);
     }
     animBg();
