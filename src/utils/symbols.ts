@@ -15,6 +15,14 @@ export const SYMS: SymbolDef[] = [
 
 export const BONUS_SYM = 9;
 export const PAYTABLE_ORDER = [0, 1, 8, 7, 2, 3, 4, 5, 6, 9] as const;
+export const CATALOG_ORDER = [...PAYTABLE_ORDER].reverse() as number[];
+export const SYMBOL_NO_BY_ID: Record<number, number> = Object.fromEntries(
+  CATALOG_ORDER.map((id, index) => [id, index + 1]),
+) as Record<number, number>;
+
+export function getSymbolNo(symbolId: number): number {
+  return SYMBOL_NO_BY_ID[symbolId] ?? symbolId + 1;
+}
 
 export function makeStrip(): number[] {
   const arr: number[] = [];

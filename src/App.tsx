@@ -6,14 +6,18 @@ import { InfoBar } from './components/InfoBar';
 import { Overlays } from './components/Overlays';
 import { PaySymbol } from './components/PaySymbol';
 import { ReelFrame } from './components/ReelFrame';
+import { ShopModal } from './components/ShopModal';
+import { ZukanModal } from './components/ZukanModal';
 import { useAudio, type NormalBgmId } from './hooks/useAudio';
 import { useGameState } from './hooks/useGameState';
 import { useKeyboard } from './hooks/useKeyboard';
 import styles from './styles/App.module.css';
-import type { Particle } from './types/game';
+import type { Particle, WinLine, ZukanEntry } from './types/game';
+import { SPRITES } from './assets/sprites';
 import { activeLines, bonusTriggerLevel, evalLines, isJackpot } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
-import { BONUS_SYM, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
+import { BONUS_SYM, getSymbolNo, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
+import { loadZukan, saveZukan, SHOP_PRICES } from './utils/zukanCookie';
 
 interface SnapState {
   active: boolean;
@@ -87,6 +91,10 @@ export default function App() {
   const [normalBgm, setNormalBgm] = useState<NormalBgmId>('abyss');
   const [musicOpen, setMusicOpen] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
+  const [zukanOpen, setZukanOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [zukanSelectedId, setZukanSelectedId] = useState(0);
+  const [zukanData, setZukanData] = useState<ZukanEntry[]>(() => loadZukan());
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -103,6 +111,10 @@ export default function App() {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    saveZukan(zukanData);
+  }, [zukanData]);
 
   useEffect(() => {
     return () => {
@@ -191,6 +203,44 @@ export default function App() {
     }
   }, []);
 
+  const applyZukanAchievements = useCallback((wins: WinLine[]) => {
+    let unlockedNew = false;
+    setZukanData((prev) => {
+      const next = prev.map((e) => ({ ...e }));
+      let changed = false;
+      wins.forEach((win) => {
+        if (win.count !== 3) return;
+        const symId = win.syms[0];
+        const entry = next[symId];
+        if (!entry) return;
+        if (!entry.unlocked) {
+          entry.unlocked = true;
+          unlockedNew = true;
+          changed = true;
+        }
+        entry.count3x += 1;
+        changed = true;
+      });
+      return changed ? next : prev;
+    });
+    if (unlockedNew) {
+      setChar('3つ揃え達成！ショップで購入できるよ！', 'excited');
+      dispatch({ type: 'SET_MESSAGE', message: 'ショップに新しい図鑑が追加！' });
+    }
+  }, [dispatch, setChar]);
+
+  const handlePurchase = useCallback((symbolId: number) => {
+    const entry = zukanData[symbolId];
+    if (!entry) return;
+    const price = SHOP_PRICES[symbolId];
+    if (!entry.unlocked || entry.purchased || stateRef.current.coins < price) return;
+    setZukanData((prev) => prev.map((e) => (e.symbolId === symbolId ? { ...e, purchased: true } : e)));
+    dispatch({ type: 'SET_COINS', value: stateRef.current.coins - price });
+    dispatch({ type: 'SET_MESSAGE', message: `${SYMS[symbolId].name} を購入！ (-${price})` });
+    setChar('ショップで購入したよ！', 'happy');
+    audio.coin();
+  }, [audio, dispatch, setChar, zukanData]);
+
   const cleanupMainSpin = useCallback(() => {
     dispatch({ type: 'SET_SPINNING', value: false });
     dispatch({ type: 'SET_STOP_STATE', value: 0 });
@@ -220,6 +270,8 @@ export default function App() {
     const bonusLevel = bonusTriggerLevel(grid, lines, BONUS_SYM);
     const top3Win = wins.find((w) => w.count === 3 && TOP3_IDS.has(w.syms[0])) ?? null;
     const isSquidTriple = bonusLevel === 3;
+
+    if (wins.length > 0) applyZukanAchievements(wins);
 
     if (total > 0) {
       const nextCombo = s.combo + 1;
@@ -271,7 +323,7 @@ export default function App() {
     }
     forcedMainSymbolRef.current = null;
     cleanupMainSpin();
-  }, [audio, cleanupMainSpin, dispatch, spawnParticles, startBonus]);
+  }, [applyZukanAchievements, audio, cleanupMainSpin, dispatch, spawnParticles, startBonus]);
 
   const createSnap = (start: number, target: number, L: number): SnapState => {
     let dist = mod(target - start, L);
@@ -326,7 +378,8 @@ export default function App() {
   const finishBonusSpin = useCallback(() => {
     const s = stateRef.current;
     const grid = getGrid(bonusPosRef.current, bonusStripsRef.current);
-    const { total } = evalLines(grid, activeLines(s.bet), s.bet);
+    const { total, wins } = evalLines(grid, activeLines(s.bet), s.bet);
+      if (wins.length > 0) applyZukanAchievements(wins);
       const won = total > 0 ? total * s.bonusPointMult : 0;
       dispatch({ type: 'BONUS_SPIN_FINISH', won });
       if (won > 0) {
@@ -337,7 +390,7 @@ export default function App() {
     } else {
       setBonusMsg('はずれ...');
     }
-  }, [audio, dispatch, setChar, spawnParticles]);
+  }, [applyZukanAchievements, audio, dispatch, setChar, spawnParticles]);
 
   const stopNextBonus = useCallback(() => {
     const s = stateRef.current;
@@ -405,9 +458,7 @@ export default function App() {
   });
 
   useEffect(() => {
-    const secret = 'pikurusu';
     const forceMap: Record<string, number> = { sss1: 0, hhh1: 1, ttt1: 8, ddd1: 9 };
-    let index = 0;
     let lastAt = 0;
     let cmdBuffer = '';
     const maxGapMs = 1200;
@@ -418,7 +469,7 @@ export default function App() {
       if (key.length !== 1 || !/[a-z0-9]/.test(key)) {
         return;
       }
-      if (now - lastAt > maxGapMs) index = 0;
+      if (now - lastAt > maxGapMs) cmdBuffer = '';
       lastAt = now;
 
       cmdBuffer = (cmdBuffer + key).slice(-4);
@@ -435,24 +486,10 @@ export default function App() {
         }
         cmdBuffer = '';
       }
-
-      if (key < 'a' || key > 'z') return;
-      if (key === secret[index]) {
-        index += 1;
-        if (index >= secret.length) {
-          index = 0;
-          if (!stateRef.current.bonusActive) {
-            startBonus();
-          }
-        }
-        return;
-      }
-
-      index = key === secret[0] ? 1 : 0;
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [audio, dispatch, setChar, startBonus]);
+  }, [audio, dispatch, setChar]);
 
   const onFrame = useCallback((dt: number) => {
     const scale = dt / 16.666;
@@ -553,7 +590,11 @@ export default function App() {
   return (
     <div className={styles.app}>
       <div className={styles.wrap}>
-        <div className={styles.title}>⚓ DEEP SEA SLOTS ⚓</div>
+        <div className={styles.title}>
+          <span className={styles.titleIcon}>⚓</span>
+          <span className={styles.titleText}>DEEP SEA SLOTS</span>
+          <span className={styles.titleIcon}>⚓</span>
+        </div>
         <div className={styles.machine}>
           {state.bonusActive && <div className={styles.bonusFx} aria-hidden="true" />}
           {specialFx && (
@@ -603,9 +644,19 @@ export default function App() {
             onSpin={state.bonusActive ? handleBonusAction : handleSpin}
             onMax={state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
             onRestart={restartFromZero}
-            onMusic={() => setMusicOpen((v) => !v)}
             message={state.bonusActive ? (bonusMsg || state.message) : state.message}
           />
+          <div className={styles.topFeatureRow}>
+            <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="図鑑" disabled={betLocked} onClick={() => setZukanOpen(true)}>
+              <img src={SPRITES.zukan} alt="" />
+            </button>
+            <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="ショップ" disabled={betLocked} onClick={() => setShopOpen(true)}>
+              <img src={SPRITES.shop} alt="" />
+            </button>
+            <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="BGM" onClick={() => setMusicOpen((v) => !v)}>
+              <span className={styles.iconBtnGlyph}>♪</span>
+            </button>
+          </div>
           {musicOpen && (
             <div className={styles.musicPopup}>
               <div className={styles.musicTitle}>BGM SELECT</div>
@@ -633,7 +684,7 @@ export default function App() {
             return (
             <div key={`${s.name}-${id}`} className={styles.ptRow}>
               <span className={styles.ptSym}><PaySymbol source={symbols[id]} /></span>
-              <span>{s.name}</span>
+              <span>{`No.${String(getSymbolNo(id)).padStart(2, '0')} ${s.name}`}</span>
               <span className={styles.ptPay}>{id === 9 ? '3x:4倍BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
             </div>
           )})}
@@ -642,6 +693,22 @@ export default function App() {
         <CharacterPanel text={state.charText} mood={state.charMood} />
 
         <Overlays open={state.jackpotOn} onClose={closeJackpot} sub={`クジラ3揃い！ +${state.win} コイン`} />
+        <ZukanModal
+          open={zukanOpen}
+          entries={zukanData}
+          selectedId={zukanSelectedId}
+          onSelect={setZukanSelectedId}
+          onClose={() => setZukanOpen(false)}
+          symbolSources={symbols}
+        />
+        <ShopModal
+          open={shopOpen}
+          entries={zukanData}
+          coins={state.coins}
+          onClose={() => setShopOpen(false)}
+          onPurchase={handlePurchase}
+          symbolSources={symbols}
+        />
 
       </div>
     </div>

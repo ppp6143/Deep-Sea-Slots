@@ -41,6 +41,13 @@ export interface Bubble {
   a: number;
 }
 
+export interface ZukanEntry {
+  symbolId: number;
+  unlocked: boolean;
+  purchased: boolean;
+  count3x: number;
+}
+
 export interface GameState {
   coins: number;
   bet: 1 | 2 | 3;
@@ -70,6 +77,7 @@ export type GameAction =
   | { type: 'SET_BET'; bet: 1 | 2 | 3 }
   | { type: 'SET_MESSAGE'; message: string }
   | { type: 'SET_CHAR'; mood: Mood; text: string }
+  | { type: 'SET_COINS'; value: number }
   | { type: 'SPIN_START'; free: boolean }
   | { type: 'SET_STOP_STATE'; value: StopState }
   | { type: 'SET_SPINNING'; value: boolean }

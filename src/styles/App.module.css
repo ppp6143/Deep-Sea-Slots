@@ -17,12 +17,29 @@
 }
 
 .title {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Press Start 2P', 'DotGothic16', monospace;
   font-size: clamp(13px, 3.5vw, 20px);
   text-align: center;
-  letter-spacing: 3px;
+  letter-spacing: 1px;
   margin-bottom: 0;
   text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff, 0 0 40px #00e5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.titleText {
+  display: inline-block;
+  line-height: 1.15;
+}
+.titleIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DotGothic16', 'Press Start 2P', monospace;
+  font-size: 1.05em;
+  line-height: 1;
+  opacity: 0.95;
 }
 
 .machine {
@@ -250,27 +267,10 @@
 .betBtn.on { background: #03304f; color: #fff; }
 .maxBtn { color: var(--gold); }
 .actionRow { gap: 8px; }
-.actionRow { margin-bottom: 24px; }
+.actionRow { margin-bottom: 10px; }
 .maxBtn {
   min-width: 88px;
   height: 46px;
-}
-.musicBtn {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 6px);
-  transform: translateX(-50%);
-  width: 56px;
-  height: 30px;
-  border: 1px solid rgba(0, 229, 255, 0.62);
-  background: #03182d;
-  color: #baf3ff;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
-  border-radius: 5px;
-  padding: 0;
-  line-height: 1;
-  box-shadow: 0 2px 0 #02283d, 0 0 6px rgba(0, 229, 255, 0.2);
 }
 .spinBtn {
   min-width: 212px;
@@ -289,32 +289,29 @@
 .spinBtn:active {
   box-shadow: 0 1px 0 #184d1f, 0 0 6px rgba(0, 255, 136, 0.18);
 }
-.musicBtn:active {
-  transform: translateX(-50%) translateY(1px) scale(0.99);
-}
 .keyHint { font-size: 8px; color: #9ac6d3; margin-top: 8px; }
 
 .msg { min-height: 19px; font-size: 9px; text-align: center; margin-top: 8px; padding-top: 2px; color: var(--gold); line-height: 1.4; }
 .belowRow {
-  display: grid;
-  grid-template-columns: 88px 212px;
-  column-gap: 10px;
+  display: flex;
   justify-content: center;
-  margin-top: -16px;
-  align-items: end;
+  align-items: center;
+  width: 308px;
+  max-width: 100%;
+  margin: 0 auto;
 }
 .musicSpacer {
-  width: 88px;
-  height: 30px;
+  display: none;
 }
 .hintMsgCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  min-height: 30px;
-  width: 212px;
+  justify-content: center;
+  gap: 3px;
+  min-height: 26px;
+  width: 100%;
+  text-align: center;
 }
 .keyHint { margin-top: 0; line-height: 1; }
 .ctrlMsg {
@@ -323,10 +320,11 @@
   color: var(--gold);
   line-height: 1;
   text-align: center;
+  width: 100%;
 }
 
 .musicPopup {
-  margin-top: 8px;
+  margin-top: 6px;
   border: 1px solid rgba(0, 229, 255, 0.35);
   border-radius: 8px;
   padding: 8px;
@@ -360,6 +358,456 @@
 .musicMute {
   color: #ffd0d0;
   border-color: rgba(255, 120, 120, 0.6);
+}
+
+.topFeatureRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0 6px;
+  width: 308px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.iconBtn {
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(2, 19, 36, 0.75);
+  color: #b9f4ff;
+  border-radius: 6px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  box-shadow: 0 2px 0 #02283d, 0 0 8px rgba(0,229,255,.12);
+  min-height: 40px;
+  text-align: center;
+}
+.iconOnlyBtn {
+  padding: 7px 8px;
+}
+.iconBtn img {
+  width: 26px;
+  height: 26px;
+  image-rendering: pixelated;
+  flex: 0 0 auto;
+}
+.iconBtnGlyph {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  line-height: 1;
+  color: #b9f4ff;
+  text-shadow: 1px 0 0 rgba(185, 244, 255, 0.22);
+}
+.iconBtn:hover {
+  filter: brightness(1.08);
+}
+.iconBtn:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 0 1px 0 #02283d, 0 0 6px rgba(0, 229, 255, 0.15);
+}
+.iconBtn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.overlaySheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+.sheetPanel {
+  width: min(94vw, 520px);
+  max-height: min(86vh, 720px);
+  overflow: auto;
+  background: linear-gradient(160deg, #061e35, #020d1a 60%, #041628);
+  border: 1px solid rgba(0,229,255,.45);
+  border-radius: 10px;
+  box-shadow: 0 0 14px rgba(0,229,255,.25);
+  padding: 10px;
+}
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sheetTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: #d6fbff;
+}
+.sheetTitle img {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+.sheetClose {
+  border: 1px solid rgba(0,229,255,.5);
+  background: #03182d;
+  color: #d4f7ff;
+  border-radius: 6px;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  padding: 7px 8px;
+}
+.sheetBody {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 10px;
+}
+.zukanGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.zukanCell {
+  border: 1px solid rgba(0,229,255,.2);
+  background: rgba(255,255,255,.02);
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+.zukanCanvasWrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+.zukanCanvasWrap canvas { image-rendering: pixelated; }
+.zukanBadge {
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 14px;
+  height: 14px;
+  image-rendering: pixelated;
+}
+.zukanPlaceholder {
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+}
+.zukanDetail {
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(1,10,18,.6);
+}
+.zukanDetailIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.zukanDetailIcon img, .zukanDetailIcon canvas {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+.zukanDetailText {
+  font-size: 8px;
+  line-height: 1.65;
+  color: #d7f5ff;
+}
+
+.zukanRetroPanel {
+  width: min(92vw, 560px);
+  height: min(92vh, 760px);
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid #00d7ff;
+  box-shadow: 0 0 0 1px rgba(0, 215, 255, 0.2), 0 0 18px rgba(0, 215, 255, 0.25);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 318px 78px 1fr;
+  background:
+    linear-gradient(180deg, rgba(4, 17, 38, 0.98), rgba(0, 10, 26, 0.98)),
+    radial-gradient(circle at 70% 10%, rgba(0, 123, 255, 0.08), transparent 40%);
+}
+.zukanRetroPanel .sheetHeader {
+  margin-bottom: 0;
+  padding: 8px 10px;
+  border-bottom: 0;
+  background: transparent;
+}
+.zukanRetroPanel .sheetTitle {
+  color: #ffe24a;
+  letter-spacing: 1px;
+}
+.zukanRetroPanel .sheetClose {
+  border-radius: 8px;
+}
+
+.zukanHero {
+  height: 318px;
+  border-bottom: 1px solid rgba(90, 170, 255, 0.2);
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(0, 110, 255, 0.08), transparent 46%),
+    linear-gradient(180deg, rgba(0, 9, 22, 0.96), rgba(0, 14, 32, 0.94));
+}
+.zukanHeroArt {
+  flex: 1;
+  height: 232px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px dashed rgba(0, 229, 255, 0.08);
+  background: rgba(0, 0, 0, 0.12);
+}
+.zukanHeroImage {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity .12s linear;
+  image-rendering: pixelated;
+  filter: saturate(1.05) contrast(1.04);
+}
+.zukanArtVisible {
+  opacity: 1;
+}
+.zukanHeroMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 10px;
+  min-height: 22px;
+}
+.zukanNo {
+  font-family: 'Press Start 2P', 'DotGothic16', monospace;
+  font-size: 12px;
+  color: #9bb6dd;
+  letter-spacing: 0;
+}
+.zukanName {
+  font-family: 'DotGothic16', 'Press Start 2P', monospace;
+  font-size: 22px;
+  color: #ffe100;
+  text-shadow: 0 0 8px rgba(255, 225, 0, 0.12);
+  line-height: 1.25;
+}
+
+.zukanInfoRow {
+  border-bottom: 1px solid rgba(90, 170, 255, 0.16);
+  padding: 10px 14px;
+  height: 78px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  background: linear-gradient(180deg, rgba(2, 16, 36, 0.95), rgba(2, 12, 28, 0.95));
+}
+.zukanInfoText {
+  font-family: 'DotGothic16', 'Press Start 2P', monospace;
+  font-size: 18px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: #d6ebff;
+  min-height: 0;
+  align-self: center;
+}
+.zukanInfoText > div {
+  min-height: 1.45em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zukanScoreText {
+  font-family: 'DotGothic16', 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #ffe100;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.zukanCollection {
+  padding: 10px 12px 12px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(4, 20, 44, 0.88), rgba(1, 12, 29, 0.95)),
+    radial-gradient(circle at 20% 0%, rgba(0, 255, 214, 0.05), transparent 46%);
+}
+.zukanCollectionTitle {
+  font-size: 8px;
+  color: rgba(162, 198, 255, 0.78);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.zukanCollectionGrid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  align-content: start;
+}
+.zukanCollectionCell {
+  min-width: 0;
+  height: 64px;
+  padding: 4px 3px 3px;
+  border: 1px solid rgba(92, 130, 176, 0.28);
+  background: linear-gradient(180deg, rgba(7, 21, 42, 0.92), rgba(3, 14, 30, 0.94));
+  color: #b8d5f3;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px;
+}
+.zukanCollectionCell:hover {
+  border-color: rgba(0, 229, 255, 0.32);
+}
+.zukanCollectionCellSelected {
+  border: 2px solid #00ff8c;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.75), 0 0 10px rgba(0, 255, 140, 0.18);
+  color: #d8ffe9;
+}
+.zukanCollectionCellLocked {
+  border-color: rgba(120, 140, 170, 0.22);
+  background: linear-gradient(180deg, rgba(11, 18, 31, 0.92), rgba(7, 13, 24, 0.94));
+  color: #7d90ab;
+}
+.zukanCollectionThumb {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zukanCollectionThumb canvas {
+  width: 36px;
+  height: 36px;
+  image-rendering: pixelated;
+}
+.zukanLockedMark {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .75;
+}
+.zukanLockedMark img {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+  filter: grayscale(1) brightness(.9);
+}
+.zukanLockedMark span {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  font-size: 10px;
+  color: #a4b6ce;
+}
+.zukanCollectionLabel {
+  width: 100%;
+  font-size: 6px;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zukanLegend {
+  display: flex;
+  gap: 22px;
+  margin-top: 10px;
+  color: #b7d8ff;
+  font-size: 8px;
+}
+.zukanLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.zukanLegendSwatch {
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgba(120, 160, 200, 0.4);
+  background: rgba(8, 24, 46, 0.9);
+}
+.zukanLegendSwatchSelected {
+  border-color: #00ff8c;
+  box-shadow: 0 0 6px rgba(0, 255, 140, 0.3);
+}
+.zukanLegendSwatchLocked {
+  border-color: rgba(132, 149, 175, 0.28);
+  background: rgba(14, 16, 22, 0.9);
+}
+
+.shopCoins {
+  font-size: 8px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.shopList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shopRow {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(0,229,255,.15);
+  border-radius: 8px;
+  padding: 6px;
+  background: rgba(255,255,255,.02);
+}
+.shopIcon img, .shopIcon canvas {
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+}
+.shopMeta {
+  font-size: 8px;
+  line-height: 1.5;
+  color: #d6f7ff;
+}
+.shopBuyBtn {
+  border: 1px solid rgba(0,229,255,.45);
+  background: #03182d;
+  color: var(--gold);
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 8px;
+}
+.shopBuyBtn:disabled {
+  opacity: .45;
+  color: #9fb9c3;
 }
 
 .ptToggle { margin-top: 10px; width: 100%; }
@@ -578,11 +1026,56 @@
   .mark { width: 20px; height: 20px; font-size: 10px; }
   .maxBtn { min-width: 82px; height: 44px; }
   .spinBtn { min-width: 180px; height: 52px; font-size: 14px; }
+  .topFeatureRow {
+    width: 270px;
+  }
+  .zukanHero {
+    height: 258px;
+    padding: 10px 10px 8px;
+  }
+  .zukanHeroArt {
+    height: 172px;
+  }
+  .zukanHeroImage {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .zukanHeroMeta {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .zukanName {
+    font-size: 18px;
+  }
+  .zukanInfoRow {
+    height: 84px;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .zukanInfoText,
+  .zukanScoreText {
+    font-size: 14px;
+  }
+  .zukanNo { font-size: 10px; }
+  .zukanCollection {
+    padding: 8px 8px 10px;
+  }
+  .zukanCollectionGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .zukanLegend {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
   .belowRow {
-    grid-template-columns: 82px 180px;
+    width: 270px;
   }
   .hintMsgCol {
-    width: 180px;
+    width: 100%;
   }
   .bonusBtn { min-width: 182px; height: 48px; font-size: 13px; }
   .ptRow { grid-template-columns: 30px 1.2fr 1.6fr; }

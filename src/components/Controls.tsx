@@ -11,11 +11,10 @@ interface Props {
   onSpin: () => void;
   onMax: () => void;
   onRestart: () => void;
-  onMusic: () => void;
   message: string;
 }
 
-export function Controls({ bet, linesCount, stopState, bonusActive, betLocked, showRestart, onBet, onSpin, onMax, onRestart, onMusic, message }: Props) {
+export function Controls({ bet, linesCount, stopState, bonusActive, betLocked, showRestart, onBet, onSpin, onMax, onRestart, message }: Props) {
   const spinLabel = stopState === 0 ? (bonusActive ? 'FREE SPIN!' : 'SPIN') : `STOP  ${['左', '中', '右'][stopState - 1] ?? ''}`;
   const maxLabel = bonusActive ? 'ボーナス終了' : showRestart ? 'RESTART' : 'MAX';
   const onLeftAction = bonusActive ? onMax : showRestart ? onRestart : onMax;
@@ -32,7 +31,6 @@ export function Controls({ bet, linesCount, stopState, bonusActive, betLocked, s
         <div className={styles.actionRow}>
           <div className={styles.leftActionWrap}>
             <button className={styles.maxBtn} onPointerDown={(e) => { e.preventDefault(); onLeftAction(); }}>{maxLabel}</button>
-            <button className={styles.musicBtn} onPointerDown={(e) => { e.preventDefault(); onMusic(); }}>♪</button>
           </div>
           <button className={styles.spinBtn} onPointerDown={(e) => { e.preventDefault(); onSpin(); }}>{spinLabel}</button>
         </div>

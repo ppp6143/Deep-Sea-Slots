@@ -37,8 +37,9 @@ export function ReelFrame({ bet, stopState, pressedReel }: Props) {
 
       <div className={styles.reelStopRow}>
         {[0, 1, 2].map((i) => {
-          const stopped = stopState > i + 1;
           const pressed = pressedReel === i;
+          // Keep the lamp glow on the final button during the press/snap frame before stopState resets.
+          const stopped = stopState > i + 1 || (stopState === i + 1 && pressed);
           return (
             <button key={i} type="button" tabIndex={-1} aria-hidden="true" className={`${styles.reelStopCap} ${stopped ? styles.stopped : ''} ${pressed ? styles.pressed : ''}`} />
           );
