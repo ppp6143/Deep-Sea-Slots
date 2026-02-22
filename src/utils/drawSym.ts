@@ -23,8 +23,8 @@
       F(11, 0, 1, 2, '#88DDFF'); F(9, 1, 1, 1, '#CCFFFF');
       F(11, 1, 1, 1, '#CCFFFF');
       F(4, 5, 6, 1, '#5AAAD4'); F(6, 4, 4, 1, '#4A9AC4');
-      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5;
-      ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 12;
+      ctx.strokeStyle = '#2F7FCB'; ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#2F7FCB'; ctx.shadowBlur = 12;
       ctx.strokeRect(0.75, 0.75, 62.5, 62.5); ctx.shadowBlur = 0;
     },
     () => {
@@ -52,9 +52,6 @@
         F(x, y, 2, 7, '#7B2D8B');
         F(x, y + 2, 1, 1, '#DD88FF'); F(x + 1, y + 5, 1, 1, '#DD88FF');
       });
-      ctx.strokeStyle = '#CC44FF'; ctx.lineWidth = 1;
-      ctx.shadowColor = '#CC44FF'; ctx.shadowBlur = 6;
-      ctx.strokeRect(0.5, 0.5, 63, 63); ctx.shadowBlur = 0;
     },
     () => {
       F(4, 3, 8, 9, '#2D6A2D'); F(3, 5, 10, 7, '#2D6A2D');
@@ -137,6 +134,13 @@
       ctx.shadowBlur = 0;
       F(6, 0, 1, 1, '#FFD700'); F(8, 0, 1, 1, '#FFD700'); F(10, 0, 1, 1, '#FFD700');
       F(7, 0, 3, 1, '#FFD700');
+      // Bonus squid gets a larger magenta/red glow frame than the symbol bounds.
+      ctx.strokeStyle = '#FF2D88';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#FF2D88';
+      ctx.shadowBlur = 12;
+      ctx.strokeRect(0.75, 0.75, 62.5, 62.5);
+      ctx.shadowBlur = 0;
     },
   ];
 
