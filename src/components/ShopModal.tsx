@@ -1,7 +1,7 @@
 import { SPRITES } from '../assets/sprites';
 import type { ZukanEntry } from '../types/game';
 import { CATALOG_ORDER, getSymbolNo } from '../utils/symbols';
-import { SHOP_PRICES, ZUKAN_NAMES } from '../utils/zukanCookie';
+import { REEL_EFFICIENCY_LV1_ID, REEL_EFFICIENCY_LV2_ID, SHOP_PRICES, ZUKAN_NAMES } from '../utils/zukanCookie';
 import styles from '../styles/App.module.css';
 
 interface Props {
@@ -13,9 +13,17 @@ interface Props {
   symbolSources: CanvasImageSource[];
 }
 
+const SPECIAL_MINI_SPRITES: Partial<Record<number, string>> = {
+  10: SPRITES.mendakoMini,
+  11: SPRITES.gusokumushiMini,
+  12: SPRITES.ryuguuMini,
+};
+
 export function ShopModal({ open, entries, coins, onClose, onPurchase, symbolSources }: Props) {
   if (!open) return null;
-  const sortedEntries = CATALOG_ORDER.map((id) => entries[id]).filter(Boolean);
+  const baseEntries = CATALOG_ORDER.map((id) => entries[id]).filter(Boolean);
+  const upgrades = [entries[REEL_EFFICIENCY_LV1_ID], entries[REEL_EFFICIENCY_LV2_ID]].filter(Boolean);
+  const sortedEntries = [...baseEntries, ...upgrades];
 
   return (
     <div className={styles.overlaySheet} onClick={onClose}>
@@ -33,15 +41,21 @@ export function ShopModal({ open, entries, coins, onClose, onPurchase, symbolSou
             const buttonLabel = entry.purchased ? '購入済み' : hasAchievement ? '購入' : '未達成';
             const no = String(getSymbolNo(entry.symbolId)).padStart(2, '0');
             const isPlayableSymbol = entry.symbolId < symbolSources.length;
-            const isSpecialZukan = entry.symbolId >= 10;
-            const visibleName = isSpecialZukan && !hasAchievement
-              ? '???'
-              : (ZUKAN_NAMES[entry.symbolId] ?? `ITEM ${no}`);
+            const isSpecialZukan = entry.symbolId >= 10 && entry.symbolId <= 12;
+            const isUpgrade1 = entry.symbolId === REEL_EFFICIENCY_LV1_ID;
+            const isUpgrade2 = entry.symbolId === REEL_EFFICIENCY_LV2_ID;
+            const isUpgradeItem = isUpgrade1 || isUpgrade2;
+            const visibleName = isSpecialZukan && !hasAchievement ? '???' : (ZUKAN_NAMES[entry.symbolId] ?? `ITEM ${no}`);
+            const specialMini = SPECIAL_MINI_SPRITES[entry.symbolId];
 
             return (
               <div key={entry.symbolId} className={styles.shopRow}>
                 <div className={styles.shopIcon}>
-                  {hasAchievement ? (
+                  {isUpgrade1 ? (
+                    <img src={SPRITES.reelEfficiency} alt="" />
+                  ) : isUpgrade2 ? (
+                    <img src={SPRITES.reelEfficiency2} alt="" />
+                  ) : hasAchievement ? (
                     isPlayableSymbol ? (
                       <canvas
                         width={40}
@@ -56,19 +70,23 @@ export function ShopModal({ open, entries, coins, onClose, onPurchase, symbolSou
                         }}
                       />
                     ) : (
-                      <img src={SPRITES.bookClosed} alt="" />
+                      <img className={specialMini ? styles.specialMiniIcon : ''} src={specialMini ?? SPRITES.bookClosed} alt="" />
                     )
                   ) : (
                     <img src={SPRITES.locked} alt="" />
                   )}
                 </div>
                 <div className={styles.shopMeta}>
-                  <div>{`No.${no} ${visibleName}`}</div>
+                  <div>{isUpgradeItem ? visibleName : `No.${no} ${visibleName}`}</div>
                   <div>価格: {price} コイン</div>
                   <div>
-                    {entry.symbolId < 10
-                      ? (hasAchievement ? `3x達成済み (${entry.count3x})` : '3x達成で購入可能')
-                      : (hasAchievement ? 'No.01-10図鑑解放済み' : 'No.01-10図鑑解放で購入可能')}
+                    {isUpgrade1
+                      ? (entry.purchased ? '効果: 2揃い配当 +1（適用中）' : '効果: 2揃い配当 +1')
+                      : isUpgrade2
+                        ? (entry.purchased ? '効果: 2揃い配当 +2（適用中）' : '効果: 2揃い配当 +2（Lv1と加算）')
+                        : entry.symbolId < 10
+                          ? (hasAchievement ? `3x達成済み (${entry.count3x})` : '3x達成で購入可能')
+                          : (hasAchievement ? 'No.01-10図鑑解放済み' : 'No.01-10図鑑解放で購入可能')}
                   </div>
                 </div>
                 <button className={styles.shopBuyBtn} disabled={!canBuy} onClick={() => onPurchase(entry.symbolId)}>

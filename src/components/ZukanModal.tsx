@@ -30,6 +30,12 @@ const ZUKAN_ART_IMAGES: Partial<Record<number, string>> = {
   12: '/zukan-art/ryuguu-no-tsukai.png',
 };
 
+const SPECIAL_MINI_SPRITES: Partial<Record<number, string>> = {
+  10: SPRITES.mendakoMini,
+  11: SPRITES.gusokumushiMini,
+  12: SPRITES.ryuguuMini,
+};
+
 function splitDescription(text: string): [string, string] {
   const clean = text?.trim() ?? '';
   if (!clean) return ['', ''];
@@ -104,6 +110,7 @@ export function ZukanModal({ open, entries, selectedId, onSelect, onClose, symbo
                 !purchased ? styles.zukanCollectionCellLocked : '',
               ].filter(Boolean).join(' ');
               const isPlayableSymbol = it.symbolId < symbolSources.length;
+              const specialMini = SPECIAL_MINI_SPRITES[it.symbolId];
 
               return (
                 <button
@@ -129,7 +136,11 @@ export function ZukanModal({ open, entries, selectedId, onSelect, onClose, symbo
                           }}
                         />
                       ) : (
-                        <img className={styles.zukanPlaceholder} src={SPRITES.bookClosed} alt="" />
+                        <img
+                          className={`${styles.zukanPlaceholder} ${specialMini ? styles.specialMiniIcon : ''}`}
+                          src={specialMini ?? SPRITES.bookClosed}
+                          alt=""
+                        />
                       )
                     ) : (
                       <div className={styles.zukanLockedMark}>

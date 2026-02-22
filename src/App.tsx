@@ -17,7 +17,7 @@ import { SPRITES } from './assets/sprites';
 import { activeLines, bonusTriggerLevel, evalLines, isJackpot } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
 import { BONUS_SYM, getSymbolNo, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
-import { loadZukan, saveZukan, SHOP_PRICES, syncZukanUnlockRules, ZUKAN_NAMES } from './utils/zukanCookie';
+import { loadZukan, REEL_EFFICIENCY_LV1_ID, REEL_EFFICIENCY_LV2_ID, saveZukan, SHOP_PRICES, syncZukanUnlockRules, ZUKAN_NAMES } from './utils/zukanCookie';
 
 interface SnapState {
   active: boolean;
@@ -265,7 +265,9 @@ export default function App() {
     const s = stateRef.current;
     const lines = activeLines(s.bet);
     const grid = getGrid(mainPosRef.current, stripsRef.current);
-    const { total, wins } = evalLines(grid, lines, s.bet);
+    const pay2Bonus = (zukanData[REEL_EFFICIENCY_LV1_ID]?.purchased ? 1 : 0)
+      + (zukanData[REEL_EFFICIENCY_LV2_ID]?.purchased ? 2 : 0);
+    const { total, wins, pay2BonusTotal } = evalLines(grid, lines, s.bet, { pay2Bonus });
     const jp = isJackpot(wins);
     const bonusLevel = bonusTriggerLevel(grid, lines, BONUS_SYM);
     const top3Win = wins.find((w) => w.count === 3 && TOP3_IDS.has(w.syms[0])) ?? null;
@@ -277,8 +279,14 @@ export default function App() {
       const nextCombo = s.combo + 1;
       const mult = comboMult(nextCombo);
       const final = Math.floor(total * mult);
+      const finalEfficiencyBonus = pay2BonusTotal > 0
+        ? Math.max(0, final - Math.floor((total - pay2BonusTotal) * mult))
+        : 0;
       dispatch({ type: 'SPIN_WIN', amount: final, combo: nextCombo });
-      dispatch({ type: 'SET_MESSAGE', message: `+${final} コイン！${mult > 1 ? ` (${mult}倍)` : ''}` });
+      dispatch({
+        type: 'SET_MESSAGE',
+        message: `+${final} コイン！${mult > 1 ? ` (${mult}倍)` : ''}${finalEfficiencyBonus > 0 ? ` [効率化 +${finalEfficiencyBonus}]` : ''}`,
+      });
       dispatch({ type: 'SET_CHAR', mood: 'excited', text: `コンボ ${nextCombo}連！ ${mult}倍！` });
       audio.win(final);
       audio.coinStream(final);
@@ -323,7 +331,7 @@ export default function App() {
     }
     forcedMainSymbolRef.current = null;
     cleanupMainSpin();
-  }, [applyZukanAchievements, audio, cleanupMainSpin, dispatch, spawnParticles, startBonus]);
+  }, [applyZukanAchievements, audio, cleanupMainSpin, dispatch, spawnParticles, startBonus, zukanData]);
 
   const createSnap = (start: number, target: number, L: number): SnapState => {
     let dist = mod(target - start, L);
@@ -378,19 +386,22 @@ export default function App() {
   const finishBonusSpin = useCallback(() => {
     const s = stateRef.current;
     const grid = getGrid(bonusPosRef.current, bonusStripsRef.current);
-    const { total, wins } = evalLines(grid, activeLines(s.bet), s.bet);
+    const pay2Bonus = (zukanData[REEL_EFFICIENCY_LV1_ID]?.purchased ? 1 : 0)
+      + (zukanData[REEL_EFFICIENCY_LV2_ID]?.purchased ? 2 : 0);
+    const { total, wins, pay2BonusTotal } = evalLines(grid, activeLines(s.bet), s.bet, { pay2Bonus });
       if (wins.length > 0) applyZukanAchievements(wins);
       const won = total > 0 ? total * s.bonusPointMult : 0;
+      const bonusEfficiency = pay2BonusTotal * s.bonusPointMult;
       dispatch({ type: 'BONUS_SPIN_FINISH', won });
       if (won > 0) {
-        setBonusMsg(`+${won} コイン！ (${s.bonusPointMult}倍)`);
+        setBonusMsg(`+${won} コイン！ (${s.bonusPointMult}倍)${bonusEfficiency > 0 ? ` [効率化 +${bonusEfficiency}]` : ''}`);
         audio.win(total);
         setChar(`+${won} コイン！`, 'excited');
         spawnParticles(won);
     } else {
       setBonusMsg('はずれ...');
     }
-  }, [applyZukanAchievements, audio, dispatch, setChar, spawnParticles]);
+  }, [applyZukanAchievements, audio, dispatch, setChar, spawnParticles, zukanData]);
 
   const stopNextBonus = useCallback(() => {
     const s = stateRef.current;
@@ -459,6 +470,7 @@ export default function App() {
 
   useEffect(() => {
     const forceMap: Record<string, number> = { sss1: 0, hhh1: 1, ttt1: 8, ddd1: 9 };
+    const debugCoinsSeed = 'ppp6143';
     let lastAt = 0;
     let cmdBuffer = '';
     const maxGapMs = 1200;
@@ -473,6 +485,16 @@ export default function App() {
       lastAt = now;
 
       cmdBuffer = (cmdBuffer + key).slice(-8);
+
+      if (cmdBuffer.endsWith(debugCoinsSeed)) {
+        const nextCoins = Math.max(0, Math.floor(stateRef.current.coins + 10000));
+        dispatch({ type: 'SET_COINS', value: nextCoins });
+        dispatch({ type: 'SET_MESSAGE', message: 'デバッグ: +10000 コイン' });
+        setChar('+10000 コイン！ テスト用だよ', 'excited');
+        audio.coin();
+        cmdBuffer = '';
+        return;
+      }
 
       const forcedId = forceMap[cmdBuffer.slice(-4)];
       if (forcedId != null) {

@@ -19,6 +19,7 @@ export interface WinLine {
 export interface EvalResult {
   total: number;
   wins: WinLine[];
+  pay2BonusTotal: number;
 }
 
 export interface Particle {

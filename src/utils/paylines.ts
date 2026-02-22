@@ -15,9 +15,16 @@ export function activeLines(bet: 1 | 2 | 3): number[][] {
   return LINES;
 }
 
-export function evalLines(grid: number[][], lines: number[][], _bet: 1 | 2 | 3): EvalResult {
+export function evalLines(
+  grid: number[][],
+  lines: number[][],
+  _bet: 1 | 2 | 3,
+  opts?: { pay2Bonus?: number },
+): EvalResult {
   let total = 0;
+  let pay2BonusTotal = 0;
   const wins: WinLine[] = [];
+  const pay2Bonus = Math.max(0, Math.floor(opts?.pay2Bonus ?? 0));
 
   lines.forEach((line) => {
     const s0 = grid[0][line[0]];
@@ -29,17 +36,19 @@ export function evalLines(grid: number[][], lines: number[][], _bet: 1 | 2 | 3):
       total += pay;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 3 });
     } else if (s0 === s1 && SYMS[s0].pay2 > 0) {
-      const pay = SYMS[s0].pay2;
+      const pay = SYMS[s0].pay2 + pay2Bonus;
       total += pay;
+      pay2BonusTotal += pay2Bonus;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
     } else if (s1 === s2 && SYMS[s1].pay2 > 0) {
-      const pay = SYMS[s1].pay2;
+      const pay = SYMS[s1].pay2 + pay2Bonus;
       total += pay;
+      pay2BonusTotal += pay2Bonus;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
     }
   });
 
-  return { total, wins };
+  return { total, wins, pay2BonusTotal };
 }
 
 export function isJackpot(wins: WinLine[]): boolean {

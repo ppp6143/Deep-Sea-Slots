@@ -507,6 +507,10 @@
   height: 40px;
   image-rendering: pixelated;
 }
+.specialMiniIcon {
+  transform: scale(1.18);
+  transform-origin: center;
+}
 .zukanDetail {
   border: 1px solid rgba(0,229,255,.2);
   border-radius: 8px;
