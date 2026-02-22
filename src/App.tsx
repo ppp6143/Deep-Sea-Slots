@@ -535,9 +535,6 @@ export default function App() {
     setNormalBgm(id);
     setMusicMuted(false);
     setMusicOpen(false);
-    if (!stateRef.current.bonusActive) {
-      audio.startNormalBgm(id);
-    }
   }, [audio]);
 
   const muteBgm = useCallback(() => {

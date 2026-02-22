@@ -115,6 +115,7 @@ export function useAudio(): AudioApi {
   const savedNormalPosRef = useRef<SavedPos>({ step: 0, audioTime: 0 });
   const synthGainRef = useRef(1);
   const fadeTimerRef = useRef<number | null>(null);
+  const transitionTokenRef = useRef(0);
 
   const getAC = (): AudioContext => {
     if (!acRef.current) acRef.current = new (window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!)();
@@ -166,6 +167,7 @@ export function useAudio(): AudioApi {
   };
 
   const stopCurrent = (): void => {
+    transitionTokenRef.current += 1;
     clearFade();
     if (bgmTimerRef.current != null) {
       window.clearInterval(bgmTimerRef.current);
@@ -247,9 +249,11 @@ export function useAudio(): AudioApi {
   };
 
   const transitionToPreset = (id: BgmPresetId, resume = false): void => {
+    const token = ++transitionTokenRef.current;
     const currentAudio = bgmAudioRef.current;
     const hasSynth = bgmTimerRef.current != null;
     if (!currentAudio && !hasSynth) {
+      if (token !== transitionTokenRef.current) return;
       startPreset(id, resume);
       return;
     }
@@ -258,6 +262,7 @@ export function useAudio(): AudioApi {
       fadeValue(startVol, 0, FADE_MS, (v) => {
         if (bgmAudioRef.current) bgmAudioRef.current.volume = Math.max(0, v);
       }, () => {
+        if (token !== transitionTokenRef.current) return;
         startPreset(id, resume);
       });
       return;
@@ -266,6 +271,7 @@ export function useAudio(): AudioApi {
     fadeValue(startGain, 0, FADE_MS, (v) => {
       synthGainRef.current = Math.max(0, v);
     }, () => {
+      if (token !== transitionTokenRef.current) return;
       startPreset(id, resume);
     });
   };

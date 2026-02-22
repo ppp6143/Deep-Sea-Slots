@@ -25,7 +25,7 @@ export function evalLines(grid: number[][], lines: number[][], _bet: 1 | 2 | 3):
     const s2 = grid[2][line[2]];
 
     if (s0 === s1 && s1 === s2) {
-      const pay = SYMS[s0].pay3;
+      const pay = SYMS[s0].pay3 > 0 ? SYMS[s0].pay3 : SYMS[s0].pay2;
       total += pay;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 3 });
     } else if (s0 === s1 && SYMS[s0].pay2 > 0) {
