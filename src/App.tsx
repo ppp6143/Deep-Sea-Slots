@@ -11,7 +11,7 @@ import { useGameState } from './hooks/useGameState';
 import { useKeyboard } from './hooks/useKeyboard';
 import styles from './styles/App.module.css';
 import type { Particle } from './types/game';
-import { activeLines, bonusTriggerLevel, evalLines, isJackpot, LINES } from './utils/paylines';
+import { activeLines, bonusTriggerLevel, evalLines, isJackpot } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
 import { BONUS_SYM, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
 
@@ -69,8 +69,8 @@ function findNearestTopForSymbol(strip: number[], pos: number, symbolId: number)
 }
 
 function comboMult(combo: number): number {
-  if (combo >= 5) return 2.8;
-  if (combo >= 3) return 1.6;
+  if (combo >= 5) return 2;
+  if (combo >= 3) return 1.5;
   if (combo >= 2) return 1.25;
   return 1;
 }
@@ -208,7 +208,7 @@ export default function App() {
     bonusSnapRef.current = null;
     setBonusMsg('');
     audio.bonus();
-    setChar(level === 3 ? 'ダイオウイカ3体！\nポイント2倍ボーナス！' : 'ダイオウイカ2体！\nボーナス発動！！', 'excited');
+    setChar(level === 3 ? 'ダイオウイカ3体！\nポイント2倍ボーナス！' : 'ボーナス発動！！', 'excited');
   }, [audio, dispatch, setChar]);
 
   const finishMainSpin = useCallback(() => {
@@ -253,24 +253,21 @@ export default function App() {
     } else {
       dispatch({ type: 'SPIN_LOSE' });
       if (bonusLevel > 0) {
-        const msg = bonusLevel === 3 ? 'ダイオウイカ3体！ 超ボーナス！' : 'ダイオウイカ2体！ ボーナス！';
+        const msg = 'ダイオウイカ3体！ 超ボーナス！';
         dispatch({ type: 'SET_MESSAGE', message: msg });
         dispatch({ type: 'SET_CHAR', mood: 'excited', text: msg });
-        if (bonusLevel === 3) {
-          audio.squidTriple();
-          setSpecialFx({ kind: 'squid', text: 'KRAKEN RUSH!! x4 BONUS' });
-          window.setTimeout(() => setSpecialFx(null), 1800);
-          spawnParticles(120);
-        }
+        audio.squidTriple();
+        setSpecialFx({ kind: 'squid', text: 'KRAKEN RUSH!! x4 BONUS' });
+        window.setTimeout(() => setSpecialFx(null), 1800);
+        spawnParticles(120);
       } else {
         dispatch({ type: 'SET_MESSAGE', message: rnd(['はずれ...', '惜しい！', '次は来る！']) });
         dispatch({ type: 'SET_CHAR', mood: 'sad', text: rnd(['うぅ...', 'ドンマイ！', '次こそ！']) });
       }
     }
 
-    if (bonusLevel >= 2) {
-      const lv: 2 | 3 = bonusLevel === 3 ? 3 : 2;
-      setTimeout(() => startBonus(lv), 500);
+    if (bonusLevel === 3) {
+      setTimeout(() => startBonus(3), 500);
     }
     forcedMainSymbolRef.current = null;
     cleanupMainSpin();
@@ -329,7 +326,7 @@ export default function App() {
   const finishBonusSpin = useCallback(() => {
     const s = stateRef.current;
     const grid = getGrid(bonusPosRef.current, bonusStripsRef.current);
-    const { total } = evalLines(grid, LINES, s.bet);
+    const { total } = evalLines(grid, activeLines(s.bet), s.bet);
       const won = total > 0 ? total * s.bonusPointMult : 0;
       dispatch({ type: 'BONUS_SPIN_FINISH', won });
       if (won > 0) {
@@ -554,6 +551,7 @@ export default function App() {
   }
 
   const showRestart = !state.bonusActive && !state.isSpinning && state.stopState === 0 && state.coins <= 0;
+  const betLocked = state.isSpinning || state.stopState > 0 || state.isSnapping || state.bonusActive || state.bonusStopState > 0 || state.bonusSnapping;
 
   return (
     <div className={styles.app}>
@@ -602,6 +600,7 @@ export default function App() {
             linesCount={state.linesCount}
             stopState={state.bonusActive ? state.bonusStopState : state.stopState}
             bonusActive={state.bonusActive}
+            betLocked={betLocked}
             showRestart={showRestart}
             onBet={(bet) => dispatch({ type: 'SET_BET', bet })}
             onSpin={state.bonusActive ? handleBonusAction : handleSpin}
@@ -638,7 +637,7 @@ export default function App() {
             <div key={`${s.name}-${id}`} className={styles.ptRow}>
               <span className={styles.ptSym}><PaySymbol source={symbols[id]} /></span>
               <span>{s.name}</span>
-              <span className={styles.ptPay}>{id === 9 ? '2x:BONUS / 3x:4倍BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
+              <span className={styles.ptPay}>{id === 9 ? '3x:4倍BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
             </div>
           )})}
         </div>

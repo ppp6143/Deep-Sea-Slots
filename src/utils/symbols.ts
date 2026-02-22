@@ -1,15 +1,15 @@
 ﻿import type { SymbolDef } from '../types/game';
 
 export const SYMS: SymbolDef[] = [
-  { name: 'シロナガスクジラ', pay2: 25, pay3: 250, weight: 3 },
-  { name: 'ホオジロザメ', pay2: 15, pay3: 100, weight: 8 },
-  { name: 'タコ', pay2: 4, pay3: 40, weight: 14 },
-  { name: 'ウミガメ', pay2: 4, pay3: 35, weight: 14 },
-  { name: 'クマノミ', pay2: 0, pay3: 15, weight: 24 },
-  { name: 'コンク貝', pay2: 0, pay3: 10, weight: 28 },
-  { name: 'コーラル', pay2: 0, pay3: 6, weight: 36 },
-  { name: 'タツノオトシゴ', pay2: 5, pay3: 25, weight: 18 },
-  { name: 'チョウチンアンコウ', pay2: 10, pay3: 60, weight: 11 },
+  { name: 'シロナガスクジラ', pay2: 0, pay3: 250, weight: 3 },
+  { name: 'ホオジロザメ', pay2: 0, pay3: 100, weight: 8 },
+  { name: 'タコ', pay2: 0, pay3: 40, weight: 14 },
+  { name: 'ウミガメ', pay2: 0, pay3: 35, weight: 14 },
+  { name: 'クマノミ', pay2: 5, pay3: 0, weight: 24 },
+  { name: 'コンク貝', pay2: 4, pay3: 0, weight: 28 },
+  { name: 'コーラル', pay2: 3, pay3: 0, weight: 36 },
+  { name: 'タツノオトシゴ', pay2: 0, pay3: 50, weight: 18 },
+  { name: 'チョウチンアンコウ', pay2: 0, pay3: 60, weight: 11 },
   { name: 'ダイオウイカ', pay2: 0, pay3: 0, weight: 10 },
 ];
 

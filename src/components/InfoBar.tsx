@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function InfoBar({ coins, win, combo, free, bonusActive = false }: Props) {
-  const mult = combo >= 5 ? 4 : combo >= 3 ? 2 : combo >= 2 ? 1.5 : 1;
+  const mult = combo >= 5 ? 2 : combo >= 3 ? 1.5 : combo >= 2 ? 1.25 : 1;
   const [displayCoins, setDisplayCoins] = useState(coins);
   const displayRef = useRef(coins);
   const rafRef = useRef<number | null>(null);

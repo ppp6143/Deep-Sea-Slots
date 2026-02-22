@@ -15,7 +15,7 @@ export function activeLines(bet: 1 | 2 | 3): number[][] {
   return LINES;
 }
 
-export function evalLines(grid: number[][], lines: number[][], bet: 1 | 2 | 3): EvalResult {
+export function evalLines(grid: number[][], lines: number[][], _bet: 1 | 2 | 3): EvalResult {
   let total = 0;
   const wins: WinLine[] = [];
 
@@ -25,11 +25,15 @@ export function evalLines(grid: number[][], lines: number[][], bet: 1 | 2 | 3): 
     const s2 = grid[2][line[2]];
 
     if (s0 === s1 && s1 === s2) {
-      const pay = SYMS[s0].pay3 * bet;
+      const pay = SYMS[s0].pay3;
       total += pay;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 3 });
     } else if (s0 === s1 && SYMS[s0].pay2 > 0) {
-      const pay = SYMS[s0].pay2 * bet;
+      const pay = SYMS[s0].pay2;
+      total += pay;
+      wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
+    } else if (s1 === s2 && SYMS[s1].pay2 > 0) {
+      const pay = SYMS[s1].pay2;
       total += pay;
       wins.push({ line, syms: [s0, s1, s2], pay, count: 2 });
     }
@@ -51,18 +55,15 @@ export function isBonus(grid: number[][], lines: number[][], bonusSym: number): 
   });
 }
 
-export function bonusTriggerLevel(grid: number[][], lines: number[][], bonusSym: number): 0 | 2 | 3 {
-  let level: 0 | 2 | 3 = 0;
+export function bonusTriggerLevel(grid: number[][], lines: number[][], bonusSym: number): 0 | 3 {
+  let level: 0 | 3 = 0;
   lines.forEach((line) => {
     const s0 = grid[0][line[0]];
     const s1 = grid[1][line[1]];
     const s2 = grid[2][line[2]];
-    if (s0 === bonusSym && s1 === bonusSym) {
-      if (s2 === bonusSym) {
-        level = 3;
-      } else if (level < 2) {
-        level = 2;
-      }
+    if (s0 === bonusSym && s1 === bonusSym && s2 === bonusSym) {
+      level = 3;
+      return;
     }
   });
   return level;

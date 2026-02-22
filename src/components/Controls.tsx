@@ -5,6 +5,7 @@ interface Props {
   linesCount: 1 | 3 | 5;
   stopState: number;
   bonusActive: boolean;
+  betLocked: boolean;
   showRestart: boolean;
   onBet: (bet: 1 | 2 | 3) => void;
   onSpin: () => void;
@@ -14,7 +15,7 @@ interface Props {
   message: string;
 }
 
-export function Controls({ bet, linesCount, stopState, bonusActive, showRestart, onBet, onSpin, onMax, onRestart, onMusic, message }: Props) {
+export function Controls({ bet, linesCount, stopState, bonusActive, betLocked, showRestart, onBet, onSpin, onMax, onRestart, onMusic, message }: Props) {
   const spinLabel = stopState === 0 ? (bonusActive ? 'FREE SPIN!' : 'SPIN') : `STOP  ${['左', '中', '右'][stopState - 1] ?? ''}`;
   const maxLabel = bonusActive ? 'ボーナス終了' : showRestart ? 'RESTART' : 'MAX';
   const onLeftAction = bonusActive ? onMax : showRestart ? onRestart : onMax;
@@ -22,9 +23,9 @@ export function Controls({ bet, linesCount, stopState, bonusActive, showRestart,
     <div className={styles.controls}>
       <div className={styles.betRow}>
         <span className={styles.betLabel}>BET:</span>
-        <button disabled={bonusActive} className={`${styles.betBtn} ${bet === 1 ? styles.on : ''}`} onClick={() => onBet(1)}>1</button>
-        <button disabled={bonusActive} className={`${styles.betBtn} ${bet === 2 ? styles.on : ''}`} onClick={() => onBet(2)}>2</button>
-        <button disabled={bonusActive} className={`${styles.betBtn} ${bet === 3 ? styles.on : ''}`} onClick={() => onBet(3)}>3</button>
+        <button disabled={betLocked} className={`${styles.betBtn} ${bet === 1 ? styles.on : ''}`} onClick={() => onBet(1)}>1</button>
+        <button disabled={betLocked} className={`${styles.betBtn} ${bet === 2 ? styles.on : ''}`} onClick={() => onBet(2)}>2</button>
+        <button disabled={betLocked} className={`${styles.betBtn} ${bet === 3 ? styles.on : ''}`} onClick={() => onBet(3)}>3</button>
         <span className={styles.betLabel}>LINES:</span>
         <span className={styles.linesVal}>{linesCount}</span>
       </div>

@@ -2,13 +2,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 type PlayerState = {
+  version: number;
   coins: number;
   bonusEntries: number;
   updatedAt: number;
 };
 
 const COOKIE_KEY = 'dss_state';
-const DEFAULT_STATE: PlayerState = { coins: 1000, bonusEntries: 0, updatedAt: Date.now() };
+const STATE_VERSION = 2;
+const DEFAULT_STATE: PlayerState = { version: STATE_VERSION, coins: 1000, bonusEntries: 0, updatedAt: Date.now() };
 const MAX_COINS = 9_999_999;
 const MAX_DELTA_PER_WRITE = 5_000;
 const SECRET = process.env.DSS_STATE_SECRET || 'deepseaslots-dev-secret';
@@ -29,8 +31,10 @@ function decodeState(token: string | undefined): PlayerState | null {
   if (sign(raw) !== sig) return null;
   try {
     const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as Partial<PlayerState>;
+    if (!Number.isFinite(parsed.version) || Math.floor(parsed.version as number) !== STATE_VERSION) return null;
     if (!Number.isFinite(parsed.coins) || !Number.isFinite(parsed.bonusEntries)) return null;
     return {
+      version: STATE_VERSION,
       coins: Math.max(0, Math.min(MAX_COINS, Math.floor(parsed.coins ?? 0))),
       bonusEntries: Math.max(0, Math.floor(parsed.bonusEntries ?? 0)),
       updatedAt: Number.isFinite(parsed.updatedAt) ? Math.floor(parsed.updatedAt as number) : Date.now(),
@@ -107,6 +111,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     const next: PlayerState = {
+      version: STATE_VERSION,
       coins: nextCoins,
       bonusEntries: nextBonusEntries,
       updatedAt: Date.now(),
