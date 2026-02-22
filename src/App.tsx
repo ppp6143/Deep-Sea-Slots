@@ -138,7 +138,7 @@ export default function App() {
         if (!res.ok) return;
         const data = (await res.json()) as { coins?: number; bonusEntries?: number };
         if (disposed) return;
-        const coins = Number.isFinite(data.coins) ? Math.max(0, data.coins as number) : 1000;
+        const coins = Number.isFinite(data.coins) ? Math.max(0, data.coins as number) : 100;
         const bonusEntries = Number.isFinite(data.bonusEntries) ? Math.max(0, data.bonusEntries as number) : 0;
         dispatch({ type: 'HYDRATE_PROFILE', coins, bonusEntries });
       } catch {

@@ -2,7 +2,7 @@
 import type { GameAction, GameState } from '../types/game';
 
 const initialState: GameState = {
-  coins: 1000,
+  coins: 100,
   bet: 1,
   win: 0,
   combo: 0,
@@ -24,7 +24,7 @@ const initialState: GameState = {
   linesCount: 1,
 };
 
-const INITIAL_COINS = 1000;
+const INITIAL_COINS = 100;
 
 function reducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {

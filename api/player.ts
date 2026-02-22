@@ -9,8 +9,8 @@ type PlayerState = {
 };
 
 const COOKIE_KEY = 'dss_state';
-const STATE_VERSION = 2;
-const DEFAULT_STATE: PlayerState = { version: STATE_VERSION, coins: 1000, bonusEntries: 0, updatedAt: Date.now() };
+const STATE_VERSION = 3;
+const DEFAULT_STATE: PlayerState = { version: STATE_VERSION, coins: 100, bonusEntries: 0, updatedAt: Date.now() };
 const MAX_COINS = 9_999_999;
 const MAX_DELTA_PER_WRITE = 5_000;
 const SECRET = process.env.DSS_STATE_SECRET || 'deepseaslots-dev-secret';
