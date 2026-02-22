@@ -17,7 +17,7 @@ import { SPRITES } from './assets/sprites';
 import { activeLines, bonusTriggerLevel, evalLines, isJackpot } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
 import { BONUS_SYM, getSymbolNo, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
-import { loadZukan, saveZukan, SHOP_PRICES } from './utils/zukanCookie';
+import { loadZukan, saveZukan, SHOP_PRICES, syncZukanUnlockRules, ZUKAN_NAMES } from './utils/zukanCookie';
 
 interface SnapState {
   active: boolean;
@@ -113,7 +113,7 @@ export default function App() {
   }, [state]);
 
   useEffect(() => {
-    saveZukan(zukanData);
+    saveZukan(syncZukanUnlockRules(zukanData));
   }, [zukanData]);
 
   useEffect(() => {
@@ -234,9 +234,9 @@ export default function App() {
     if (!entry) return;
     const price = SHOP_PRICES[symbolId];
     if (!entry.unlocked || entry.purchased || stateRef.current.coins < price) return;
-    setZukanData((prev) => prev.map((e) => (e.symbolId === symbolId ? { ...e, purchased: true } : e)));
+    setZukanData((prev) => syncZukanUnlockRules(prev.map((e) => (e.symbolId === symbolId ? { ...e, purchased: true } : e))));
     dispatch({ type: 'SET_COINS', value: stateRef.current.coins - price });
-    dispatch({ type: 'SET_MESSAGE', message: `${SYMS[symbolId].name} を購入！ (-${price})` });
+    dispatch({ type: 'SET_MESSAGE', message: `${ZUKAN_NAMES[symbolId] ?? `No.${symbolId + 1}`} を購入！ (-${price})` });
     setChar('ショップで購入したよ！', 'happy');
     audio.coin();
   }, [audio, dispatch, setChar, zukanData]);
@@ -472,8 +472,9 @@ export default function App() {
       if (now - lastAt > maxGapMs) cmdBuffer = '';
       lastAt = now;
 
-      cmdBuffer = (cmdBuffer + key).slice(-4);
-      const forcedId = forceMap[cmdBuffer];
+      cmdBuffer = (cmdBuffer + key).slice(-8);
+
+      const forcedId = forceMap[cmdBuffer.slice(-4)];
       if (forcedId != null) {
         const canForce = !stateRef.current.bonusActive && stateRef.current.isSpinning && stateRef.current.stopState === 1;
         if (canForce) {

@@ -1,7 +1,7 @@
 import { SPRITES } from '../assets/sprites';
 import type { ZukanEntry } from '../types/game';
-import { CATALOG_ORDER, getSymbolNo, SYMS } from '../utils/symbols';
-import { SHOP_PRICES } from '../utils/zukanCookie';
+import { CATALOG_ORDER, getSymbolNo } from '../utils/symbols';
+import { SHOP_PRICES, ZUKAN_NAMES } from '../utils/zukanCookie';
 import styles from '../styles/App.module.css';
 
 interface Props {
@@ -32,31 +32,44 @@ export function ShopModal({ open, entries, coins, onClose, onPurchase, symbolSou
             const canBuy = hasAchievement && !entry.purchased && coins >= price;
             const buttonLabel = entry.purchased ? '購入済み' : hasAchievement ? '購入' : '未達成';
             const no = String(getSymbolNo(entry.symbolId)).padStart(2, '0');
+            const isPlayableSymbol = entry.symbolId < symbolSources.length;
+            const isSpecialZukan = entry.symbolId >= 10;
+            const visibleName = isSpecialZukan && !hasAchievement
+              ? '???'
+              : (ZUKAN_NAMES[entry.symbolId] ?? `ITEM ${no}`);
 
             return (
               <div key={entry.symbolId} className={styles.shopRow}>
                 <div className={styles.shopIcon}>
                   {hasAchievement ? (
-                    <canvas
-                      width={40}
-                      height={40}
-                      ref={(node) => {
-                        if (!node) return;
-                        const ctx = node.getContext('2d');
-                        if (!ctx) return;
-                        ctx.clearRect(0, 0, 40, 40);
-                        ctx.imageSmoothingEnabled = false;
-                        ctx.drawImage(symbolSources[entry.symbolId], 0, 0, 40, 40);
-                      }}
-                    />
+                    isPlayableSymbol ? (
+                      <canvas
+                        width={40}
+                        height={40}
+                        ref={(node) => {
+                          if (!node) return;
+                          const ctx = node.getContext('2d');
+                          if (!ctx) return;
+                          ctx.clearRect(0, 0, 40, 40);
+                          ctx.imageSmoothingEnabled = false;
+                          ctx.drawImage(symbolSources[entry.symbolId], 0, 0, 40, 40);
+                        }}
+                      />
+                    ) : (
+                      <img src={SPRITES.bookClosed} alt="" />
+                    )
                   ) : (
                     <img src={SPRITES.locked} alt="" />
                   )}
                 </div>
                 <div className={styles.shopMeta}>
-                  <div>{`No.${no} ${SYMS[entry.symbolId].name}`}</div>
+                  <div>{`No.${no} ${visibleName}`}</div>
                   <div>価格: {price} コイン</div>
-                  <div>{hasAchievement ? `3x達成済み (${entry.count3x})` : '3x達成で購入可能'}</div>
+                  <div>
+                    {entry.symbolId < 10
+                      ? (hasAchievement ? `3x達成済み (${entry.count3x})` : '3x達成で購入可能')
+                      : (hasAchievement ? 'No.01-10図鑑解放済み' : 'No.01-10図鑑解放で購入可能')}
+                  </div>
                 </div>
                 <button className={styles.shopBuyBtn} disabled={!canBuy} onClick={() => onPurchase(entry.symbolId)}>
                   {buttonLabel}
