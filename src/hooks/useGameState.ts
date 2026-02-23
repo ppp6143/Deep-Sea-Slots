@@ -40,7 +40,6 @@ function reducer(state: GameState, action: GameAction): GameState {
         coins: INITIAL_COINS,
         win: 0,
         combo: 0,
-        freeSpin: 0,
         isSpinning: false,
         stopState: 0,
         isSnapping: false,
