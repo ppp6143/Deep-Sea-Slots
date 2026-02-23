@@ -18,6 +18,11 @@ interface Props {
   isSpinning: boolean;
   combo: number;
   onFrame: (dt: number) => void;
+  specialBonusPhase?: 'inactive' | 'intro' | 'spinning' | 'resultFlash' | 'readyExit';
+  specialBonusKind?: 'treasure' | 'mendako' | 'gusokumushi' | 'ryuguu';
+  specialTreasurePos?: MutableRefObject<[number, number, number]>;
+  specialTreasureImages?: [HTMLImageElement | null, HTMLImageElement | null, HTMLImageElement | null];
+  specialTreasureSheet?: HTMLImageElement | null;
   className?: string;
 }
 
@@ -30,7 +35,21 @@ interface Bubble {
   a: number;
 }
 
-export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning, combo, onFrame, className }: Props) {
+export function GameCanvas({
+  runtime,
+  symbols,
+  bonusActive,
+  reachOn,
+  isSpinning,
+  combo,
+  onFrame,
+  specialBonusPhase = 'inactive',
+  specialBonusKind = 'treasure',
+  specialTreasurePos,
+  specialTreasureImages = [null, null, null],
+  specialTreasureSheet = null,
+  className,
+}: Props) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const timeRef = useRef(0);
   const GLASS_ALPHA = 0.16;
@@ -114,6 +133,7 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       const reelGap = 3;
       const reelW = (reelAreaW - reelGap * 2) / 3;
       const cellH = 80;
+      const specialActive = specialBonusPhase !== 'inactive';
       const drawPos = bonusActive ? runtime.bonusPos.current : runtime.mainPos.current;
       const drawStrips = bonusActive ? runtime.bonusStrips.current : runtime.strips.current;
 
@@ -123,11 +143,6 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       for (let r = 0; r < 3; r += 1) {
         const x = reelAreaX + r * (reelW + reelGap);
         const y = reelAreaY;
-        const strip = drawStrips[r];
-        const L = strip.length;
-        const pos = drawPos[r];
-        const top = ((Math.floor(pos) % L) + L) % L;
-        const frac = pos - Math.floor(pos);
 
         ctx.save();
         ctx.beginPath();
@@ -135,13 +150,88 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
         ctx.clip();
         ctx.fillStyle = '#010914';
         ctx.fillRect(x, y, reelW, 240);
+        if (specialActive) {
+          if (specialBonusPhase === 'intro') {
+            const g = ctx.createLinearGradient(x, y, x, y + reelAreaH);
+            g.addColorStop(0, '#110d00');
+            g.addColorStop(0.55, '#3c2a00');
+            g.addColorStop(1, '#120d00');
+            ctx.fillStyle = g;
+            ctx.fillRect(x, y, reelW, reelAreaH);
 
-        for (let i = 0; i < 4; i += 1) {
-          const sym = strip[(top + i) % L];
-          const img = symbols[sym];
-          const dy = y + (i - frac) * cellH;
-          if (img) {
-            ctx.drawImage(img, x + (reelW - 64) / 2, dy + 8, 64, 64);
+            for (let iy = 0; iy < 3; iy += 1) {
+              const cy = y + 12 + iy * 76;
+              ctx.fillStyle = 'rgba(255,220,110,0.14)';
+              ctx.fillRect(x + 9, cy, reelW - 18, 60);
+              ctx.strokeStyle = 'rgba(255,220,110,0.18)';
+              ctx.strokeRect(x + 9.5, cy + 0.5, reelW - 19, 59);
+
+              ctx.fillStyle = '#ffe77f';
+              const qx = x + reelW / 2 - 10;
+              const qy = cy + 16;
+              ctx.fillRect(qx + 2, qy, 12, 4);
+              ctx.fillRect(qx + 10, qy + 4, 4, 4);
+              ctx.fillRect(qx + 6, qy + 8, 4, 4);
+              ctx.fillRect(qx + 6, qy + 16, 4, 4);
+              ctx.fillRect(qx + 6, qy + 24, 4, 4);
+
+              ctx.fillStyle = 'rgba(255,215,80,0.35)';
+              for (let p = 0; p < 7; p += 1) {
+                ctx.fillRect(x + 14 + p * 10, cy + 49, 4, 2);
+              }
+            }
+          } else {
+            const img = specialTreasureImages[r];
+            const posPx = specialTreasurePos?.current?.[r] ?? 0;
+            if (specialTreasureSheet) {
+              const sw = specialTreasureSheet.naturalWidth || specialTreasureSheet.width;
+              const sh = specialTreasureSheet.naturalHeight || specialTreasureSheet.height;
+              const segW = Math.floor(sw / 3);
+              const sx = Math.min(sw - segW, r * segW);
+              for (let i = -1; i <= 1; i += 1) {
+                const dy = y + i * reelAreaH - posPx;
+                ctx.drawImage(specialTreasureSheet, sx, 0, segW, sh, x, dy, reelW, reelAreaH);
+              }
+            } else if (img) {
+              for (let i = -1; i <= 1; i += 1) {
+                const dy = y + i * reelAreaH - posPx;
+                ctx.drawImage(img, x, dy, reelW, reelAreaH);
+              }
+            } else {
+              const tint = specialBonusKind === 'mendako'
+                ? ['#1b0612', '#5c1f3e', '#14070f']
+                : specialBonusKind === 'gusokumushi'
+                  ? ['#081018', '#2d3d52', '#0a121a']
+                  : specialBonusKind === 'ryuguu'
+                    ? ['#07141b', '#1b4962', '#08131a']
+                    : ['#1a1200', '#4f3500', '#120d00'];
+              const g = ctx.createLinearGradient(x, y, x, y + reelAreaH);
+              g.addColorStop(0, tint[0]);
+              g.addColorStop(0.5, tint[1]);
+              g.addColorStop(1, tint[2]);
+              ctx.fillStyle = g;
+              ctx.fillRect(x, y, reelW, reelAreaH);
+              ctx.fillStyle = 'rgba(255,210,50,0.25)';
+              for (let yy = y + 10; yy < y + reelAreaH; yy += 24) {
+                ctx.fillRect(x + 6, yy, reelW - 12, 2);
+              }
+              ctx.fillStyle = '#ffd95c';
+              ctx.fillRect(x + reelW * 0.34, y + reelAreaH * 0.46, reelW * 0.32, 12);
+            }
+          }
+        } else {
+          const strip = drawStrips[r];
+          const L = strip.length;
+          const pos = drawPos[r];
+          const top = ((Math.floor(pos) % L) + L) % L;
+          const frac = pos - Math.floor(pos);
+          for (let i = 0; i < 4; i += 1) {
+            const sym = strip[(top + i) % L];
+            const img = symbols[sym];
+            const dy = y + (i - frac) * cellH;
+            if (img) {
+              ctx.drawImage(img, x + (reelW - 64) / 2, dy + 8, 64, 64);
+            }
           }
         }
         ctx.restore();
@@ -150,7 +240,7 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
 
       const sep1 = reelW;
       const sep2 = reelW * 2 + reelGap;
-      ctx.fillStyle = 'rgba(0,229,255,0.38)';
+      ctx.fillStyle = specialActive ? 'rgba(255,215,0,0.45)' : 'rgba(0,229,255,0.38)';
       ctx.fillRect(sep1, reelAreaY, reelGap, reelAreaH);
       ctx.fillRect(sep2, reelAreaY, reelGap, reelAreaH);
 
@@ -195,7 +285,7 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       ctx.fillStyle = `rgba(255,255,255,${isSpinning ? 0.08 : 0.04})`;
       ctx.fillRect(0, reelAreaH * 0.5 - 1, reelAreaW, 2);
 
-      if (reachOn) {
+      if (!specialActive && reachOn) {
         const pulse = 0.6 + Math.sin(t * 14) * 0.4;
         ctx.fillStyle = `rgba(255,80,80,${pulse})`;
         ctx.font = '16px "Press Start 2P"';
@@ -203,6 +293,31 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
         ctx.shadowBlur = 12;
         ctx.fillText('REACH', reelAreaX + reelAreaW / 2 - 46, reelAreaY + reelAreaH / 2);
         ctx.shadowBlur = 0;
+      }
+
+      if (specialActive) {
+        const pulse = 0.5 + Math.sin(t * (specialBonusPhase === 'resultFlash' ? 22 : 9)) * 0.5;
+        ctx.strokeStyle = `rgba(255,220,80,${0.45 + pulse * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(reelAreaX + 2, reelAreaY + 2, reelAreaW - 4, reelAreaH - 4);
+
+        if (specialBonusPhase !== 'spinning' && specialBonusPhase !== 'intro') {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.shadowColor = '#ffdf66';
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = '#ffea7a';
+          ctx.font = '14px "Press Start 2P"';
+          const label = specialBonusKind === 'treasure'
+            ? 'TREASURE'
+            : specialBonusKind === 'mendako'
+              ? 'MENDAKO'
+              : specialBonusKind === 'gusokumushi'
+                ? 'GUSOKU'
+                : 'RYUGUU';
+          ctx.fillText(label, reelAreaX + reelAreaW / 2, reelAreaY + 28);
+          ctx.restore();
+        }
       }
 
       const arr = runtime.particles.current;
@@ -242,7 +357,7 @@ export function GameCanvas({ runtime, symbols, bonusActive, reachOn, isSpinning,
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [bubbles, bonusActive, combo, isSpinning, onFrame, runtime, symbols, reachOn]);
+  }, [bubbles, bonusActive, combo, isSpinning, onFrame, runtime, symbols, reachOn, specialBonusKind, specialBonusPhase, specialTreasureImages, specialTreasurePos, specialTreasureSheet]);
 
   return <canvas ref={ref} className={className ?? styles.gameCanvas} />;
 }

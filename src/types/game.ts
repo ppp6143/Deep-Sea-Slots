@@ -79,6 +79,7 @@ export type GameAction =
   | { type: 'SET_MESSAGE'; message: string }
   | { type: 'SET_CHAR'; mood: Mood; text: string }
   | { type: 'SET_COINS'; value: number }
+  | { type: 'SET_WIN'; value: number }
   | { type: 'SPIN_START'; free: boolean }
   | { type: 'SET_STOP_STATE'; value: StopState }
   | { type: 'SET_SPINNING'; value: boolean }

@@ -165,6 +165,33 @@
   width: min(100%, 402px);
   margin: 0 auto;
 }
+.reelStageGold::before,
+.reelStageGold::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: -8px;
+  height: 256px;
+  border-radius: 10px;
+  pointer-events: none;
+}
+.reelStageGold::before {
+  border: 2px solid rgba(255, 214, 64, 0.85);
+  box-shadow: 0 0 10px rgba(255, 214, 64, 0.6), 0 0 24px rgba(255, 184, 40, 0.4);
+  animation: reelGoldPulse 0.75s ease-in-out infinite alternate;
+}
+.reelStageGold::after {
+  inset: -4px -4px auto -4px;
+  height: 248px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,240,160,0.22), transparent 45%),
+    radial-gradient(circle at 85% 18%, rgba(255,216,90,0.14), transparent 42%);
+  mix-blend-mode: screen;
+}
+.reelStageGoldFlash::before {
+  animation: reelGoldFlash 160ms linear infinite;
+}
 
 .gameCanvas {
   width: 100%;
@@ -233,6 +260,13 @@
 .stopped {
   box-shadow: 0 0 12px rgba(0, 255, 136, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 3px 0 #103425;
 }
+.reelStopCapGold {
+  background: radial-gradient(circle at 34% 32%, #fff8cf, #ffd65f 46%, #d49114 70%, #533307);
+  box-shadow: 0 0 10px rgba(255, 211, 73, 0.35), inset 0 1px 0 rgba(255, 250, 210, 0.7), 0 3px 0 #5b3d06;
+}
+.reelStopCapGold.stopped {
+  box-shadow: 0 0 14px rgba(255, 245, 150, 0.65), 0 0 28px rgba(255, 205, 80, 0.45), inset 0 1px 0 rgba(255,255,255,0.8), 0 3px 0 #5b3d06;
+}
 
 @keyframes reelPress {
   0% { transform: translateY(0); }
@@ -285,6 +319,15 @@
 .betBtn:active, .maxBtn:active, .spinBtn:active, .ptToggle:active, .bonusBtn:active, .bonusExit:active, .jpClose:active {
   transform: translateY(2px) scale(0.99);
   box-shadow: 0 1px 0 #02283d, 0 0 6px rgba(0, 229, 255, 0.15);
+}
+.betBtn:disabled, .maxBtn:disabled, .spinBtn:disabled, .ptToggle:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: saturate(0.8);
+}
+.betBtn:disabled:active, .maxBtn:disabled:active, .spinBtn:disabled:active, .ptToggle:disabled:active {
+  transform: none;
+  box-shadow: 0 3px 0 #02283d, 0 0 10px rgba(0, 229, 255, 0.2);
 }
 .spinBtn:active {
   box-shadow: 0 1px 0 #184d1f, 0 0 6px rgba(0, 255, 136, 0.18);
@@ -418,6 +461,17 @@
 .iconBtn:disabled {
   opacity: .4;
   cursor: not-allowed;
+}
+
+@keyframes reelGoldPulse {
+  0% { opacity: 0.7; filter: saturate(1); }
+  100% { opacity: 1; filter: saturate(1.15); }
+}
+
+@keyframes reelGoldFlash {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.55; }
 }
 
 .overlaySheet {

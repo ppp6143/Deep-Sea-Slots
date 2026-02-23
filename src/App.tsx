@@ -34,9 +34,40 @@ interface SpecialFxState {
   kind: 'top3' | 'squid';
 }
 
+type SpecialBonusKind = 'treasure' | 'mendako' | 'gusokumushi' | 'ryuguu';
+type SpecialBonusPhase = 'inactive' | 'intro' | 'spinning' | 'resultFlash' | 'readyExit';
+
+interface SpecialBonusState {
+  phase: SpecialBonusPhase;
+  kind: SpecialBonusKind;
+  reward: number;
+  lockUntil: number;
+}
+
+type SpecialBonusImageSet = [HTMLImageElement | null, HTMLImageElement | null, HTMLImageElement | null];
+type SpecialBonusImageMap = Record<SpecialBonusKind, SpecialBonusImageSet>;
+type SpecialBonusSheetMap = Record<SpecialBonusKind, HTMLImageElement | null>;
+
+function specialBonusName(kind: SpecialBonusKind): string {
+  switch (kind) {
+    case 'mendako':
+      return 'メンダコ';
+    case 'gusokumushi':
+      return 'ダイオウグソクムシ';
+    case 'ryuguu':
+      return 'リュウグウノツカイ';
+    default:
+      return '宝箱';
+  }
+}
+
 const MAIN_SPEEDS: [number, number, number] = [0.32, 0.3, 0.28];
 const BONUS_SPEEDS: [number, number, number] = [0.3, 0.28, 0.26];
 const TOP3_IDS = new Set([0, 1, 8]);
+const SPECIAL_BONUS_CHANCE = 0.01;
+// Pixel-per-frame-equivalent speeds tuned to feel close to normal reel motion.
+const TREASURE_SPEEDS: [number, number, number] = [25.6, 24, 22.4];
+const TREASURE_CELL_H = 240;
 
 function mod(v: number, m: number): number {
   return ((v % m) + m) % m;
@@ -95,6 +126,21 @@ export default function App() {
   const [shopOpen, setShopOpen] = useState(false);
   const [zukanSelectedId, setZukanSelectedId] = useState(0);
   const [zukanData, setZukanData] = useState<ZukanEntry[]>(() => loadZukan());
+  const [specialBonus, setSpecialBonus] = useState<SpecialBonusState>({ phase: 'inactive', kind: 'treasure', reward: 100, lockUntil: 0 });
+  const [specialBonusGlow, setSpecialBonusGlow] = useState(false);
+  const [specialReelImages, setSpecialReelImages] = useState<SpecialBonusImageMap>({
+    treasure: [null, null, null],
+    mendako: [null, null, null],
+    gusokumushi: [null, null, null],
+    ryuguu: [null, null, null],
+  });
+  const [specialReelSheets, setSpecialReelSheets] = useState<SpecialBonusSheetMap>({
+    treasure: null,
+    mendako: null,
+    gusokumushi: null,
+    ryuguu: null,
+  });
+  const [specialBonusStopState, setSpecialBonusStopState] = useState<0 | 1 | 2 | 3 | 4>(0);
 
   const stateRef = useRef(state);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
@@ -105,6 +151,13 @@ export default function App() {
   const bonusRunningRef = useRef<[boolean, boolean, boolean]>([false, false, false]);
   const mainSnapRef = useRef<SnapState | null>(null);
   const bonusSnapRef = useRef<SnapState | null>(null);
+  const treasurePosRef = useRef<[number, number, number]>([0, 0, 0]);
+  const treasureRunningRef = useRef<[boolean, boolean, boolean]>([false, false, false]);
+  const treasureSnapRef = useRef<SnapState | null>(null);
+  const treasureStopStateRef = useRef<0 | 1 | 2 | 3 | 4>(0);
+  const treasurePressedReelRef = useRef<number | null>(null);
+  const forceSpecialAfterNextNormalSpinRef = useRef(false);
+  const armSpecialAfterNormalSpinRef = useRef(false);
   const particlesRef = useRef<Particle[]>([]);
   const forcedMainSymbolRef = useRef<number | null>(null);
 
@@ -140,6 +193,68 @@ export default function App() {
 
   useEffect(() => {
     void initSymbolCache(true).then((cache) => setSymbols(cache));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const files: Record<SpecialBonusKind, [string, string, string]> = {
+      treasure: ['treasure-left.png', 'treasure-center.png', 'treasure-right.png'],
+      mendako: ['mendako-left.png', 'mendako-center.png', 'mendako-right.png'],
+      gusokumushi: ['gusokumushi-left.png', 'gusokumushi-center.png', 'gusokumushi-right.png'],
+      ryuguu: ['ryuguu-left.png', 'ryuguu-center.png', 'ryuguu-right.png'],
+    };
+    const next: SpecialBonusImageMap = {
+      treasure: [null, null, null],
+      mendako: [null, null, null],
+      gusokumushi: [null, null, null],
+      ryuguu: [null, null, null],
+    };
+    const jobs = (Object.entries(files) as Array<[SpecialBonusKind, [string, string, string]]>).flatMap(([kind, arr]) =>
+      arr.map((name, i) => ({ kind, i: i as 0 | 1 | 2, src: `/special/${name}` })),
+    );
+    let loaded = 0;
+    jobs.forEach(({ kind, i, src }) => {
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        next[kind][i] = img;
+        loaded += 1;
+        if (loaded === jobs.length) setSpecialReelImages({ ...next });
+      };
+      img.onerror = () => {
+        if (cancelled) return;
+        loaded += 1;
+        if (loaded === jobs.length) setSpecialReelImages({ ...next });
+      };
+      img.src = src;
+    });
+    const sheetFiles: Record<SpecialBonusKind, string> = {
+      treasure: 'treasure.png',
+      mendako: 'mendako.png',
+      gusokumushi: 'gusokumushi.png',
+      ryuguu: 'ryuguu.png',
+    };
+    const nextSheets: SpecialBonusSheetMap = {
+      treasure: null,
+      mendako: null,
+      gusokumushi: null,
+      ryuguu: null,
+    };
+    (Object.entries(sheetFiles) as Array<[SpecialBonusKind, string]>).forEach(([kind, name]) => {
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        nextSheets[kind] = img;
+        setSpecialReelSheets((prev) => ({ ...prev, [kind]: img }));
+      };
+      img.onerror = () => {
+        // optional file
+      };
+      img.src = `/special/${name}`;
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -185,6 +300,56 @@ export default function App() {
   const setChar = useCallback((text: string, mood: 'idle' | 'happy' | 'excited' | 'worried' | 'sad' = 'happy') => {
     dispatch({ type: 'SET_CHAR', mood, text });
   }, [dispatch]);
+
+  const rollSpecialBonusKind = useCallback((): { kind: SpecialBonusKind; reward: number } => {
+    const candidates: Array<{ kind: SpecialBonusKind; reward: number }> = [{ kind: 'treasure', reward: 100 }];
+    if (zukanData[10]?.purchased) candidates.push({ kind: 'mendako', reward: 250 });
+    if (zukanData[11]?.purchased) candidates.push({ kind: 'gusokumushi', reward: 500 });
+    if (zukanData[12]?.purchased) candidates.push({ kind: 'ryuguu', reward: 1000 });
+    return candidates[(Math.random() * candidates.length) | 0];
+  }, [zukanData]);
+
+  const enterSpecialBonus = useCallback((forced = false) => {
+    const pick = rollSpecialBonusKind();
+    const lockUntil = performance.now() + 1500;
+    treasurePosRef.current = [0, 0, 0];
+    treasureRunningRef.current = [false, false, false];
+    treasureSnapRef.current = null;
+    treasureStopStateRef.current = 0;
+    treasurePressedReelRef.current = null;
+    setSpecialBonusStopState(0);
+    setPressedReel(null);
+    setSpecialBonusGlow(true);
+    setSpecialBonus({ phase: 'intro', kind: pick.kind, reward: pick.reward, lockUntil });
+    dispatch({ type: 'SET_MESSAGE', message: forced ? 'シークレット演出準備中…' : '特別演出発生！' });
+    setChar(pick.kind === 'treasure' ? '宝箱チャンス！' : '隠しキャラ演出！', 'excited');
+    audio.reach();
+
+    window.setTimeout(() => {
+      treasureRunningRef.current = [true, true, true];
+      treasureStopStateRef.current = 1;
+      setSpecialBonusStopState(1);
+      setSpecialBonus((prev) => {
+        if (prev.phase !== 'intro') return prev;
+        return { ...prev, phase: 'spinning', lockUntil: 0 };
+      });
+      dispatch({ type: 'SET_MESSAGE', message: '特別演出！ STOPで止めよう' });
+      audio.spin();
+    }, 1500);
+  }, [audio, dispatch, rollSpecialBonusKind, setChar]);
+
+  const leaveSpecialBonus = useCallback(() => {
+    treasureRunningRef.current = [false, false, false];
+    treasureSnapRef.current = null;
+    treasureStopStateRef.current = 0;
+    treasurePressedReelRef.current = null;
+    setSpecialBonusStopState(0);
+    setPressedReel(null);
+    setSpecialBonusGlow(false);
+    setSpecialBonus({ phase: 'inactive', kind: 'treasure', reward: 100, lockUntil: 0 });
+    dispatch({ type: 'SET_MESSAGE', message: '' });
+    setChar('通常モードへ戻るよ', 'happy');
+  }, [dispatch, setChar]);
 
   const spawnParticles = useCallback((amount: number) => {
     const n = Math.min(window.innerWidth < 600 ? 30 : 80, 12 + ((amount / 4) | 0));
@@ -331,6 +496,12 @@ export default function App() {
     }
     forcedMainSymbolRef.current = null;
     cleanupMainSpin();
+    if (armSpecialAfterNormalSpinRef.current) {
+      armSpecialAfterNormalSpinRef.current = false;
+      forceSpecialAfterNextNormalSpinRef.current = true;
+      dispatch({ type: 'SET_MESSAGE', message: '次のSPINで特別演出が発生！' });
+      setChar('次はシークレット演出だよ！', 'excited');
+    }
   }, [applyZukanAchievements, audio, cleanupMainSpin, dispatch, spawnParticles, startBonus, zukanData]);
 
   const createSnap = (start: number, target: number, L: number): SnapState => {
@@ -377,11 +548,71 @@ export default function App() {
     mainSnapRef.current = null;
   }, [audio, dispatch, setChar]);
 
+  const finalizeSpecialBonus = useCallback(() => {
+    setSpecialBonusGlow(true);
+    setSpecialBonus((prev) => ({ ...prev, phase: 'resultFlash', lockUntil: performance.now() + 2000 }));
+    dispatch({ type: 'SET_MESSAGE', message: `${specialBonusName(specialBonus.kind)} BONUS!` });
+    setChar(`${specialBonusName(specialBonus.kind)}出現！`, 'excited');
+    audio.jackpot();
+    spawnParticles(specialBonus.reward + 120);
+
+    window.setTimeout(() => {
+      dispatch({ type: 'SET_COINS', value: stateRef.current.coins + specialBonus.reward });
+      dispatch({ type: 'SET_WIN', value: specialBonus.reward });
+      dispatch({ type: 'SET_MESSAGE', message: `${specialBonusName(specialBonus.kind)} BONUS +${specialBonus.reward} コイン！ [SPINで戻る]` });
+      setChar(`+${specialBonus.reward} コイン獲得！`, 'happy');
+      audio.coinStream(specialBonus.reward);
+      setSpecialBonus((prev) => (prev.phase === 'inactive' ? prev : { ...prev, phase: 'readyExit', lockUntil: 0 }));
+    }, 2000);
+  }, [audio, dispatch, setChar, specialBonus.kind, specialBonus.reward, spawnParticles]);
+
+  const stopNextSpecial = useCallback(() => {
+    if (specialBonus.phase !== 'spinning') return;
+    const r = (treasureStopStateRef.current - 1) as 0 | 1 | 2;
+    if (r < 0 || r > 2) return;
+    treasureRunningRef.current[r] = false;
+    treasurePressedReelRef.current = r;
+    setPressedReel(r);
+    window.setTimeout(() => {
+      treasurePressedReelRef.current = null;
+      setPressedReel((v) => (v === r ? null : v));
+    }, 170);
+    audio.coin();
+    const snap = createSnap(treasurePosRef.current[r], 0, TREASURE_CELL_H);
+    snap.reel = r;
+    snap.duration = 120;
+    treasureSnapRef.current = snap;
+  }, [audio, finalizeSpecialBonus, specialBonus.phase]);
+
+  const handleSpecialAction = useCallback(() => {
+    if (specialBonus.phase === 'inactive') return false;
+    if (performance.now() < specialBonus.lockUntil) return true;
+    if (specialBonus.phase === 'spinning') {
+      stopNextSpecial();
+      return true;
+    }
+    if (specialBonus.phase === 'readyExit') {
+      leaveSpecialBonus();
+      return true;
+    }
+    return true;
+  }, [leaveSpecialBonus, specialBonus.lockUntil, specialBonus.phase, stopNextSpecial]);
+
   const handleSpin = useCallback(() => {
+    if (handleSpecialAction()) return;
     if (stateRef.current.isSnapping) return;
-    if (stateRef.current.stopState === 0) doMainSpin();
+    if (stateRef.current.stopState === 0) {
+      const forcedSpecial = forceSpecialAfterNextNormalSpinRef.current;
+      const shouldSpecial = forcedSpecial || Math.random() < SPECIAL_BONUS_CHANCE;
+      if (shouldSpecial) {
+        forceSpecialAfterNextNormalSpinRef.current = false;
+        enterSpecialBonus(forcedSpecial);
+        return;
+      }
+      doMainSpin();
+    }
     else if (stateRef.current.stopState >= 1 && stateRef.current.stopState <= 3) stopNextMain();
-  }, [doMainSpin, stopNextMain]);
+  }, [doMainSpin, enterSpecialBonus, handleSpecialAction, stopNextMain]);
 
   const finishBonusSpin = useCallback(() => {
     const s = stateRef.current;
@@ -471,6 +702,7 @@ export default function App() {
   useEffect(() => {
     const forceMap: Record<string, number> = { sss1: 0, hhh1: 1, ttt1: 8, ddd1: 9 };
     const debugCoinsSeed = 'ppp6143';
+    const forceSpecialSeed = 'bbb1';
     let lastAt = 0;
     let cmdBuffer = '';
     const maxGapMs = 1200;
@@ -492,6 +724,15 @@ export default function App() {
         dispatch({ type: 'SET_MESSAGE', message: 'デバッグ: +10000 コイン' });
         setChar('+10000 コイン！ テスト用だよ', 'excited');
         audio.coin();
+        cmdBuffer = '';
+        return;
+      }
+
+      if (cmdBuffer.endsWith(forceSpecialSeed)) {
+        armSpecialAfterNormalSpinRef.current = true;
+        dispatch({ type: 'SET_MESSAGE', message: 'bbb1: 次の通常スピン終了後に特別演出を予約' });
+        setChar('次の次で特別演出を見せるよ！', 'excited');
+        audio.reach();
         cmdBuffer = '';
         return;
       }
@@ -523,6 +764,9 @@ export default function App() {
       }
       if (bonusRunningRef.current[i]) {
         bonusPosRef.current[i] = mod(bonusPosRef.current[i] + BONUS_SPEEDS[i] * scale, bonusStripsRef.current[i].length);
+      }
+      if (treasureRunningRef.current[i]) {
+        treasurePosRef.current[i] = mod(treasurePosRef.current[i] + TREASURE_SPEEDS[i] * scale, TREASURE_CELL_H);
       }
     }
 
@@ -584,6 +828,23 @@ export default function App() {
         if (next === 4) finishBonusSpin();
       }
     }
+
+    const ts = treasureSnapRef.current;
+    if (ts && ts.active) {
+      ts.elapsed += dt;
+      const p = Math.min(1, ts.elapsed / ts.duration);
+      const ease = 1 - (1 - p) ** 3;
+      const r = ts.reel;
+      treasurePosRef.current[r] = mod(ts.start + ts.dist * ease, TREASURE_CELL_H);
+      if (p >= 1) {
+        treasurePosRef.current[r] = mod(ts.target, TREASURE_CELL_H);
+        treasureSnapRef.current = null;
+        const next = (treasureStopStateRef.current + 1) as 1 | 2 | 3 | 4;
+        treasureStopStateRef.current = next;
+        setSpecialBonusStopState(next);
+        if (next === 4) finalizeSpecialBonus();
+      }
+    }
   }, [audio, dispatch, finishBonusSpin, finishMainSpin, setChar]);
 
   const closeJackpot = useCallback(() => {
@@ -608,7 +869,11 @@ export default function App() {
   }
 
   const showRestart = !state.bonusActive && !state.isSpinning && state.stopState === 0 && state.coins <= 0;
-  const betLocked = state.isSpinning || state.stopState > 0 || state.isSnapping || state.bonusActive || state.bonusStopState > 0 || state.bonusSnapping;
+  const specialActive = specialBonus.phase !== 'inactive';
+  const specialResulting = specialBonus.phase === 'resultFlash' || specialBonus.phase === 'readyExit';
+  const specialSpinLocked = specialBonus.phase === 'intro' || specialBonus.phase === 'resultFlash';
+  const uiStopState = state.bonusActive ? state.bonusStopState : specialActive ? specialBonusStopState : state.stopState;
+  const betLocked = state.isSpinning || state.stopState > 0 || state.isSnapping || state.bonusActive || state.bonusStopState > 0 || state.bonusSnapping || specialActive;
 
   return (
     <div className={styles.app}>
@@ -633,7 +898,7 @@ export default function App() {
             bonusActive={state.bonusActive}
           />
           <div className={styles.reelsOuter}>
-            <div className={styles.reelStage}>
+            <div className={`${styles.reelStage} ${specialBonusGlow ? styles.reelStageGold : ''} ${specialResulting ? styles.reelStageGoldFlash : ''}`}>
               <GameCanvas
                 runtime={{
                   mainPos: mainPosRef,
@@ -645,29 +910,37 @@ export default function App() {
                 symbols={symbols}
                 bonusActive={state.bonusActive}
                 reachOn={state.reachOn}
-                isSpinning={state.isSpinning || state.bonusStopState > 0}
+                isSpinning={state.isSpinning || state.bonusStopState > 0 || specialBonus.phase === 'spinning'}
                 combo={state.combo}
                 onFrame={onFrame}
+                specialBonusPhase={specialBonus.phase}
+                specialBonusKind={specialBonus.kind}
+                specialTreasurePos={treasurePosRef}
+                specialTreasureImages={specialReelImages[specialBonus.kind]}
+                specialTreasureSheet={specialReelSheets[specialBonus.kind]}
               />
               <ReelFrame
                 bet={state.bet}
-                stopState={state.bonusActive ? state.bonusStopState : state.stopState}
+                stopState={uiStopState}
                 pressedReel={pressedReel}
+                goldMode={specialActive}
               />
             </div>
           </div>
           <Controls
             bet={state.bet}
             linesCount={state.linesCount}
-            stopState={state.bonusActive ? state.bonusStopState : state.stopState}
+            stopState={uiStopState}
             bonusActive={state.bonusActive}
             betLocked={betLocked}
             showRestart={showRestart}
             onBet={(bet) => dispatch({ type: 'SET_BET', bet })}
             onSpin={state.bonusActive ? handleBonusAction : handleSpin}
-            onMax={state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
+            onMax={specialActive ? () => {} : state.bonusActive ? endBonus : () => dispatch({ type: 'SET_BET', bet: 3 })}
             onRestart={restartFromZero}
-            message={state.bonusActive ? (bonusMsg || state.message) : state.message}
+            message={specialActive ? state.message : state.bonusActive ? (bonusMsg || state.message) : state.message}
+            leftDisabled={specialActive}
+            spinDisabled={specialSpinLocked}
           />
           <div className={styles.topFeatureRow}>
             <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="図鑑" disabled={betLocked} onClick={() => setZukanOpen(true)}>
@@ -676,11 +949,11 @@ export default function App() {
             <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="ショップ" disabled={betLocked} onClick={() => setShopOpen(true)}>
               <img src={SPRITES.shop} alt="" />
             </button>
-            <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="BGM" onClick={() => setMusicOpen((v) => !v)}>
+            <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="BGM" disabled={specialActive} onClick={() => setMusicOpen((v) => !v)}>
               <span className={styles.iconBtnGlyph}>♪</span>
             </button>
           </div>
-          {musicOpen && (
+          {musicOpen && !specialActive && (
             <div className={styles.musicPopup}>
               <div className={styles.musicTitle}>BGM SELECT</div>
               <div className={styles.musicList}>
@@ -699,7 +972,7 @@ export default function App() {
           )}
         </div>
 
-        <button className={styles.ptToggle} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>
+        <button className={styles.ptToggle} disabled={specialActive} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>
         <div className={`${styles.payTable} ${ptOpen ? styles.open : ''}`}>
           <div className={styles.ptTitle}>🐠 PAY TABLE 🐠</div>
           {PAYTABLE_ORDER.map((id) => {

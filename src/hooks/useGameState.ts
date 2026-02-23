@@ -63,6 +63,8 @@ function reducer(state: GameState, action: GameAction): GameState {
       return { ...state, charMood: action.mood, charText: action.text };
     case 'SET_COINS':
       return { ...state, coins: Math.max(0, Math.floor(action.value)) };
+    case 'SET_WIN':
+      return { ...state, win: Math.max(0, Math.floor(action.value)) };
     case 'SPIN_START':
       return {
         ...state,
