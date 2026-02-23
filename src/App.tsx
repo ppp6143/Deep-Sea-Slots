@@ -143,6 +143,7 @@ export default function App() {
   const [specialBonusStopState, setSpecialBonusStopState] = useState<0 | 1 | 2 | 3 | 4>(0);
 
   const stateRef = useRef(state);
+  const specialBonusRef = useRef(specialBonus);
   const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
   const bonusStripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
   const mainPosRef = useRef<[number, number, number]>([0, 0, 0]);
@@ -164,6 +165,10 @@ export default function App() {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    specialBonusRef.current = specialBonus;
+  }, [specialBonus]);
 
   useEffect(() => {
     saveZukan(syncZukanUnlockRules(zukanData));
@@ -416,6 +421,7 @@ export default function App() {
   }, [dispatch]);
 
   const startBonus = useCallback((level: 2 | 3 = 2) => {
+    if (specialBonusRef.current.phase !== 'inactive') return;
     const pointMult = level === 3 ? 4 : 2;
     dispatch({ type: 'BONUS_START', pointMult });
     bonusPosRef.current = [0, 0, 0];
@@ -492,7 +498,10 @@ export default function App() {
     }
 
     if (bonusLevel === 3) {
-      setTimeout(() => startBonus(3), 500);
+      setTimeout(() => {
+        if (specialBonusRef.current.phase !== 'inactive') return;
+        startBonus(3);
+      }, 500);
     }
     forcedMainSymbolRef.current = null;
     cleanupMainSpin();
