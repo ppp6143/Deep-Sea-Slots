@@ -845,7 +845,7 @@ export default function App() {
         if (next === 4) finalizeSpecialBonus();
       }
     }
-  }, [audio, dispatch, finishBonusSpin, finishMainSpin, setChar]);
+  }, [audio, dispatch, finalizeSpecialBonus, finishBonusSpin, finishMainSpin, setChar]);
 
   const closeJackpot = useCallback(() => {
     dispatch({ type: 'SHOW_JACKPOT', value: false });
