@@ -24,19 +24,24 @@ export function getSymbolNo(symbolId: number): number {
   return SYMBOL_NO_BY_ID[symbolId] ?? symbolId + 1;
 }
 
-export function makeStrip(): number[] {
-  const arr: number[] = [];
-  SYMS.forEach((s, i) => {
-    for (let w = 0; w < s.weight; w += 1) arr.push(i);
-  });
+// 0=クジラ 1=サメ 2=タコ 3=カメ 4=クマノミ 5=コンク 6=コーラル 7=タツノオト 8=アンコウ 9=イカ
+// 各リール30シンボル固定配列 — 目押し可能な短縮リール
+const REEL_1: number[] = [
+  6, 4, 5, 7, 6, 3, 1, 6, 4, 5,
+  6, 2, 9, 4, 6, 0, 5, 8, 3, 7,
+  6, 4, 1, 5, 3, 9, 7, 8, 2, 6,
+];
 
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = (Math.random() * (i + 1)) | 0;
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
+const REEL_2: number[] = [
+  6, 5, 4, 8, 6, 3, 7, 5, 6, 1,
+  4, 6, 9, 5, 2, 6, 0, 4, 7, 3,
+  6, 5, 1, 8, 4, 9, 3, 7, 2, 6,
+];
 
-export function makeReelSet(): [number[], number[], number[]] {
-  return [makeStrip(), makeStrip(), makeStrip()];
-}
+const REEL_3: number[] = [
+  6, 4, 7, 5, 6, 1, 3, 4, 6, 8,
+  5, 9, 6, 2, 4, 7, 0, 6, 5, 3,
+  1, 6, 9, 4, 8, 5, 7, 2, 3, 6,
+];
+
+export const REEL_STRIPS: [number[], number[], number[]] = [REEL_1, REEL_2, REEL_3];

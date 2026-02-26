@@ -16,7 +16,7 @@ import type { Particle, WinLine, ZukanEntry } from './types/game';
 import { SPRITES } from './assets/sprites';
 import { activeLines, bonusTriggerLevel, evalLines, isJackpot } from './utils/paylines';
 import { initSymbolCache } from './utils/renderCache';
-import { BONUS_SYM, getSymbolNo, makeReelSet, PAYTABLE_ORDER, SYMS } from './utils/symbols';
+import { BONUS_SYM, getSymbolNo, REEL_STRIPS, PAYTABLE_ORDER, SYMS } from './utils/symbols';
 import { loadZukan, REEL_EFFICIENCY_LV1_ID, REEL_EFFICIENCY_LV2_ID, saveZukan, SHOP_PRICES, syncZukanUnlockRules, ZUKAN_NAMES } from './utils/zukanCookie';
 
 interface SnapState {
@@ -61,12 +61,25 @@ function specialBonusName(kind: SpecialBonusKind): string {
   }
 }
 
-const MAIN_SPEEDS: [number, number, number] = [0.32, 0.3, 0.28];
-const BONUS_SPEEDS: [number, number, number] = [0.3, 0.28, 0.26];
+const SYMBOL_EN_NAMES: Record<number, string> = {
+  0: 'BLUE WHALE',
+  1: 'SHARK',
+  2: 'OCTOPUS',
+  3: 'SEA TURTLE',
+  4: 'CLOWNFISH',
+  5: 'CONCH',
+  6: 'CORAL',
+  7: 'SEAHORSE',
+  8: 'ANGLERFISH',
+  9: 'GIANT SQUID',
+};
+
+const MAIN_SPEEDS: [number, number, number] = [0.22, 0.20, 0.18];
+const BONUS_SPEEDS: [number, number, number] = [0.22, 0.20, 0.18];
 const TOP3_IDS = new Set([0, 1, 8]);
 const SPECIAL_BONUS_CHANCE = 0.01;
 // Pixel-per-frame-equivalent speeds tuned to feel close to normal reel motion.
-const TREASURE_SPEEDS: [number, number, number] = [25.6, 24, 22.4];
+const TREASURE_SPEEDS: [number, number, number] = [17.6, 16.0, 14.4];
 const TREASURE_CELL_H = 240;
 
 function mod(v: number, m: number): number {
@@ -144,8 +157,8 @@ export default function App() {
 
   const stateRef = useRef(state);
   const specialBonusRef = useRef(specialBonus);
-  const stripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
-  const bonusStripsRef = useRef<[number[], number[], number[]]>(makeReelSet());
+  const stripsRef = useRef<[number[], number[], number[]]>(REEL_STRIPS);
+  const bonusStripsRef = useRef<[number[], number[], number[]]>(REEL_STRIPS);
   const mainPosRef = useRef<[number, number, number]>([0, 0, 0]);
   const bonusPosRef = useRef<[number, number, number]>([0, 0, 0]);
   const runningRef = useRef<[boolean, boolean, boolean]>([false, false, false]);
@@ -888,9 +901,9 @@ export default function App() {
     <div className={styles.app}>
       <div className={styles.wrap}>
         <div className={styles.title}>
-          <span className={styles.titleIcon}>⚓</span>
+          <img className={styles.titleIcon} src={SPRITES.anchor} alt="" width={20} height={20} />
           <span className={styles.titleText}>DEEP SEA SLOTS</span>
-          <span className={styles.titleIcon}>⚓</span>
+          <img className={styles.titleIcon} src={SPRITES.anchor} alt="" width={20} height={20} />
         </div>
         <div className={styles.machine}>
           {state.bonusActive && <div className={styles.bonusFx} aria-hidden="true" />}
@@ -959,7 +972,7 @@ export default function App() {
               <img src={SPRITES.shop} alt="" />
             </button>
             <button className={`${styles.iconBtn} ${styles.iconOnlyBtn}`} aria-label="BGM" disabled={specialActive} onClick={() => setMusicOpen((v) => !v)}>
-              <span className={styles.iconBtnGlyph}>♪</span>
+              <img src={SPRITES.musicNote} alt="" />
             </button>
           </div>
           {musicOpen && !specialActive && (
@@ -981,16 +994,17 @@ export default function App() {
           )}
         </div>
 
-        <button className={styles.ptToggle} disabled={specialActive} onClick={() => setPtOpen((v) => !v)}>📜 配当表</button>
+        <button className={styles.ptToggle} disabled={specialActive} onClick={() => setPtOpen((v) => !v)}>PAY TABLE</button>
         <div className={`${styles.payTable} ${ptOpen ? styles.open : ''}`}>
-          <div className={styles.ptTitle}>🐠 PAY TABLE 🐠</div>
+          <div className={styles.ptTitle}>-= PAY TABLE =-</div>
           {PAYTABLE_ORDER.map((id) => {
             const s = SYMS[id];
+            const enName = SYMBOL_EN_NAMES[id] ?? s.name;
             return (
-            <div key={`${s.name}-${id}`} className={styles.ptRow}>
+            <div key={`${enName}-${id}`} className={styles.ptRow}>
               <span className={styles.ptSym}><PaySymbol source={symbols[id]} /></span>
-              <span>{`No.${String(getSymbolNo(id)).padStart(2, '0')} ${s.name}`}</span>
-              <span className={styles.ptPay}>{id === 9 ? '3x:4倍BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
+              <span>{`No.${String(getSymbolNo(id)).padStart(2, '0')} ${enName}`}</span>
+              <span className={styles.ptPay}>{id === 9 ? '3x:4x BONUS' : `2x:${s.pay2} / 3x:${s.pay3}`}</span>
             </div>
           )})}
         </div>

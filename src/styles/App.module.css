@@ -36,9 +36,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DotGothic16', 'Press Start 2P', monospace;
-  font-size: 1.05em;
-  line-height: 1;
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
   opacity: 0.95;
 }
 
@@ -164,6 +164,7 @@
   position: relative;
   width: min(100%, 402px);
   margin: 0 auto;
+  padding-top: 32px;
 }
 .reelStageGold::before,
 .reelStageGold::after {
@@ -171,7 +172,7 @@
   position: absolute;
   left: -8px;
   right: -8px;
-  top: -8px;
+  top: 24px;
   height: 256px;
   border-radius: 10px;
   pointer-events: none;
@@ -182,7 +183,7 @@
   animation: reelGoldPulse 0.75s ease-in-out infinite alternate;
 }
 .reelStageGold::after {
-  inset: -4px -4px auto -4px;
+  inset: 28px -4px auto -4px;
   height: 248px;
   background:
     radial-gradient(circle at 15% 20%, rgba(255,240,160,0.22), transparent 45%),
@@ -204,35 +205,38 @@
   will-change: transform;
 }
 
-.lineMarks {
+.paylineMarkers {
   position: absolute;
   top: 0;
-  height: 240px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  bottom: 0;
+  width: 0;
   pointer-events: none;
   z-index: 3;
 }
-.left { left: -36px; }
-.right { right: -36px; }
-.mark {
+.left { left: -26px; }
+.right { right: -26px; }
+.plMarker {
+  position: absolute;
   width: 22px;
   height: 22px;
   border-radius: 999px;
   background: rgba(3, 22, 35, 0.8);
-  border: 1px solid rgba(0, 229, 255, 0.28);
-  color: rgba(165, 228, 246, 0.6);
-  font-size: 11px;
+  border: 1.5px solid rgba(0, 229, 255, 0.15);
+  color: rgba(165, 228, 246, 0.28);
+  font-size: 10px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  left: 0;
+  transform: translateX(-50%) translateY(-50%);
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
-.markOn {
-  border-color: rgba(0, 229, 255, 0.72);
-  color: #d9fbff;
-  box-shadow: 0 0 6px rgba(0, 229, 255, 0.32);
+.plMarkerOn {
+  border-color: var(--pl-color);
+  color: var(--pl-color);
+  box-shadow: 0 0 4px var(--pl-color);
 }
 
 .reelStopRow {
@@ -1079,9 +1083,9 @@
 @media (max-width: 520px) {
   .wrap { max-width: 100%; }
   .reelsOuter { padding: 0 28px 0; }
-  .left { left: -28px; }
-  .right { right: -28px; }
-  .mark { width: 20px; height: 20px; font-size: 10px; }
+  .left { left: -22px; }
+  .right { right: -22px; }
+  .plMarker { width: 20px; height: 20px; font-size: 9px; }
   .maxBtn { min-width: 82px; height: 44px; }
   .spinBtn { min-width: 180px; height: 52px; font-size: 14px; }
   .topFeatureRow {
